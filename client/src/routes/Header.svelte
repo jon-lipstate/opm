@@ -1,50 +1,43 @@
 <script>
-	import { page } from '$app/stores';
 	import logo from '$lib/images/odin-logo.svg';
-	import github from '$lib/images/github.svg';
+	// import github from '$lib/images/git_light.svg';
 </script>
 
 <header>
-	<div class="logo">
-		<a href="https://odin-lang.org">
-			<img src={logo} alt="OdinLogo" />
-		</a>
-	</div>
 	<nav>
-		<input type="text" name="search" id="" placeholder="Search" />
-		<button type="submit">Search</button>
+		<!-- Logo-->
+		<div class="logo">
+			<a href="/">
+				<img src={logo} alt="OdinLogo" />
+			</a>
+		</div>
+		<!-- Search Bar-->
+		<form class="search-container" action="/search">
+			<input
+				type="search"
+				name="query"
+				class="search-input"
+				placeholder="Search"
+				spellcheck="false"
+				autocomplete="off"
+			/>
+			<div class="shortcut">
+				<kbd class="">Ctrl</kbd> <kbd class="">K</kbd>
+			</div>
+		</form>
+		<!-- Right Items -->
+		<div class="right-items">
+			<a href="https://odin-lang.org/"> ODIN-LANG </a>
+			<span style="padding-left:1rem;" />
+			<a href="/login"> Login </a>
+		</div>
 	</nav>
-
-	<div class="corner">
-		<a href="https://github.com/odin-lang/Odin">
-			<img src={github} alt="GitHub" />
-		</a>
-	</div>
 </header>
 
 <style>
 	header {
 		display: flex;
 		justify-content: space-between;
-	}
-
-	.corner {
-		width: 3em;
-		height: 3em;
-	}
-
-	.corner a {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-	}
-
-	.corner img {
-		width: 2em;
-		height: 2em;
-		object-fit: contain;
 	}
 	.logo img {
 		margin-left: 0.75rem;
@@ -55,26 +48,57 @@
 	}
 
 	nav {
-		display: flex;
-		justify-content: center;
-		--background: rgba(255, 255, 255, 0.7);
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 6vh;
+		min-height: 55px;
+		margin: 0 auto;
+		background-color: var(--color-bg-0);
 	}
-
-	nav a {
+	.search-container {
+		position: relative;
 		display: flex;
-		height: 100%;
 		align-items: center;
-		padding: 0 0.5rem;
-		color: var(--color-text);
-		font-weight: 700;
-		font-size: 0.8rem;
+		width: 40rem;
+		height: 100%;
+		padding: 0 3px;
+	}
+	.search-input {
+		padding: 0.2em 0.5em;
+		border: 1px solid var(--back-translucent);
+		font-family: inherit;
+		font-size: 1.4rem;
+		appearance: none;
+		-webkit-appearance: none;
+		width: 100%;
+		height: 1.8em;
+		border-radius: var(--border-radius);
+	}
+	.shortcut {
+		/* color: var(--sk-text-3); */
+		position: absolute;
+		top: calc(50%-0.8rem); /*TODO: why the 0.8rem?*/
+		right: 1rem;
+		width: 100%;
+		text-align: right;
+		pointer-events: none;
+		font-size: 1.2rem;
 		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		text-decoration: none;
-		transition: color 0.2s linear;
+	}
+	.right-items {
+		margin-top: 1.2rem; /**todo: hack fix*/
+		margin-right: 1rem;
+		justify-content: end;
+		display: flex;
+		/* width: auto; */
+		height: 100%;
 	}
 
-	a:hover {
-		color: var(--color-theme-1);
+	a {
+		color: var(--color-text);
 	}
 </style>

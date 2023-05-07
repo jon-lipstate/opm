@@ -12,6 +12,7 @@
 
 <style>
 	section {
+		margin-top: 1.5em;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;

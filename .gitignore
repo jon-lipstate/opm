@@ -2,8 +2,9 @@ client/node_modules
 client/.svelte-kit
 /.idea
 
+.env
 .venv/
-.env/
+config/
 
 *.pyc
 __pycache__/

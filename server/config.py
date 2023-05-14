@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 
 # Specify a 'config' file containing key/value config values
 basedir = path.abspath(path.dirname(__file__))
-load_dotenv(path.join(basedir, 'config'))
+configdir = basedir + "\\..\\config"    # path to local environment file
+load_dotenv(path.join(configdir, '.env'))
+test = 1
 
 
 class Config:

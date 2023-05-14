@@ -12,6 +12,14 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
 
+    # Can also add functions here
+    def __init__(self, username):
+        self.username = username
+
+    def to_json(self):
+        return dict(name=self.username, email=self.email, id=self.id)
+
+
     def __repr__(self):
         return '<User %r>' % self.username
 

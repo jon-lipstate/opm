@@ -23,11 +23,16 @@ def create_app(test_config=None):
     # initialize the app with the extension
     db.init_app(app)
 
+    # a simple page that says hello
+    @app.route('/hello')
+    def hello():
+        return 'Hello, World!'
 
     # Uncomment if using routes.py and models.py.
     with app.app_context():
         from . import routes  # Import routes
         db.create_all()  # Create sql tables for our data models
+        # The db.create_all() function does not recreate or update a table if it already exists.
 
         return app
 

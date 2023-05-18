@@ -1,10 +1,12 @@
 <script>
 	import Header from './Header.svelte';
 	import './styles.css';
+	import yggdrasil from '$lib/images/yggdrasil.png';
 </script>
 
 <div class="app">
 	<Header />
+	<img id="yggdrasil" src={yggdrasil} alt="yggdrasil" />
 
 	<main>
 		<slot />
@@ -18,6 +20,17 @@
 </div>
 
 <style>
+	#yggdrasil {
+		opacity: 0.05;
+		color: rgba(255, 0, 0, 255);
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		height: 100%;
+		text-align: center;
+	}
+
 	.app {
 		display: flex;
 		flex-direction: column;

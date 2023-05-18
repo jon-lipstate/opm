@@ -1,17 +1,27 @@
 @import '@fontsource/fira-mono';
-
-@media (prefers-color-scheme: dark) {
-	/* todo */
+/*https://coolors.co/3882d2-ef7a30-f3f3f3-343a40*/
+/*https://coolors.co/3882d2-ef7a30-2b2b2b-1c1f24*/
+@media (prefers-color-scheme: light) {
+	:root {
+		--color-1: #3882d2;
+		--color-2: #ef7a30;
+		--color-3: #F3F3F3;
+		--color-4: #343A40;
+	}
 }
+
+
 
 :root {
 	--font-body: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
 		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	--font-mono: 'Fira Mono', monospace;
-	--color-bg-0: rgb(56, 130, 210);
+	/* --color-bg-0: #FF323E; */
+	--color-bg-0: #244773;
 	--color-bg-1: rgb(51, 76, 102);
 	--color-bg-2: rgb(37, 50, 64);
-	--color-theme-1: #ef7a30;
+	/* --color-theme-1: #ef7a30; */
+	--color-theme-1: #F29154;
 	--color-theme-2: #4075a6;
 	--color-text: rgb(199, 205, 211);
 	--column-width: 42rem;
@@ -21,14 +31,19 @@
 	--border-radius: 3px;
 	--back-translucent: rgba(51, 76, 102,55)
 }
- 
+
 body {
 	margin: 0;
+	background-color: #343A40;
+	/* background-image: url("../lib/images/field.png"); */
+	background-size: cover;
 	/* min-height: 100vh; */
-	/* background-attachment: fixed;
-	background-color: var(--color-bg-1);
+	
+	background-attachment: fixed;
+	/* background-color: var(--color-bg-1); */
+	/* background-color: rgba(255, 255, 255, 0.45); */
 	background-size: 100vw 100vh;
-	background-image: linear-gradient(180deg, var(--color-bg-0) 0%, var(--color-bg-2) 10%); */
+	/* background-image: linear-gradient(180deg, var(--color-bg-0) 0%, var(--color-bg-2) 10%); */
 }
 
 h1,

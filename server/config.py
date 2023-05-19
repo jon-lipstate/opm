@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 basedir = path.abspath(path.dirname(__file__))
 configdir = basedir + "\\..\\config"    # path to local environment file
 load_dotenv(path.join(configdir, '.env'))
-test = 1
 
 
-class Config:
+
+class Config(object):
     """Set Flask config variables."""
 
     # General Config

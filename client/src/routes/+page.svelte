@@ -20,6 +20,7 @@
 		<div class="shortcut">
 			<kbd class="">Ctrl</kbd> <kbd class="">K</kbd>
 		</div>
+		<!-- <div>Package Search</div> -->
 	</form>
 </section>
 
@@ -38,15 +39,21 @@
 		margin: auto;
 		padding: 0 3px;
 	}
+	/* hide the x in the search: */
+	input[type='search']::-webkit-search-cancel-button {
+		display: none;
+	}
 	.search-input {
 		padding: 0.2em 0.5em;
 		border: 1px solid var(--back-translucent);
-		font-family: inherit;
+		/* https://font.gooova.com/fonts/13876/ */
+		font-family: sans-serif;
 		font-size: 2rem;
 		appearance: none;
 		width: 100%;
 		height: 1.3em;
 		background-color: #3883d235;
+		color: #f7f7f77f;
 		border-radius: var(--border-radius);
 		vertical-align: middle;
 	}

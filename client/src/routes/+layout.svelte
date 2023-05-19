@@ -1,12 +1,12 @@
 <script>
 	import Header from './Header.svelte';
 	import './styles.css';
-	import yggdrasil from '$lib/images/yggdrasil.png';
+	import fjord from '$lib/images/fjord.png';
 </script>
 
 <div class="app">
 	<Header />
-	<img id="yggdrasil" src={yggdrasil} alt="yggdrasil" />
+	<img id="fjord" src={fjord} alt="fjord" />
 
 	<main>
 		<slot />
@@ -20,15 +20,16 @@
 </div>
 
 <style>
-	#yggdrasil {
+	#fjord {
 		opacity: 0.05;
 		color: rgba(255, 0, 0, 255);
 		position: absolute;
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
-		height: 100%;
+		width: 100%;
 		text-align: center;
+		pointer-events: none;
 	}
 
 	.app {

@@ -4,7 +4,6 @@ client/.svelte-kit
 
 .env
 .venv/
-config/
 
 *.pyc
 __pycache__/

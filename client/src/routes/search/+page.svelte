@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import SearchResult from './searchResult.svelte';
+	import SearchResult from '../../components/searchResult.svelte';
 
 	let query = $page.url.searchParams.get('query') || 'No query provided';
 

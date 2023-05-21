@@ -20,9 +20,10 @@
 	--color-bg-0: #244773;
 	--color-bg-1: rgb(51, 76, 102);
 	--color-bg-2: rgb(37, 50, 64);
-	--color-theme-3: #ef7a30;
 	--color-theme-1: #F29154;
-	--color-theme-2: #4075a6;
+	--color-theme-2: #ef7a30;
+	--color-theme-3: #4075a6;
+	--color-theme-4: #90a4b7;
 	--color-text: rgb(199, 205, 211);
 	--column-width: 42rem;
 	--column-margin-top: 4rem;
@@ -74,4 +75,16 @@ pre {
 	/* padding: 0.5em; */
 	overflow-x: auto;
 	color: var(--color-text);
+}
+
+code {
+    font-family: 'Courier New', monospace;
+    background-color: var(--color-bg-2);
+    border-radius: 5px;
+    line-height: 1.6;
+	color: var(--color-text);
+    white-space: pre-wrap;   /* Since CSS 2.1 */
+    display: block;
+    padding: 0 1rem 1rem 1rem;
+    word-wrap: break-word;   /* Internet Explorer 5.5+ */
 }

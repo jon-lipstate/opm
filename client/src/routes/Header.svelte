@@ -1,6 +1,12 @@
 <script>
+	import { isLoggedIn } from '$stores/user';
 	import logo from '$lib/images/odin-logo.svg';
+	import GithubLogin from '$components/githubLogin.svelte';
+	import Menu from '$components/hamburgerMenu.svelte';
 	// import github from '$lib/images/git_light.svg';
+	function handleLogout() {
+    isLoggedIn.set(false);
+}
 </script>
 
 <header>
@@ -13,7 +19,13 @@
 		</div>
 		<!-- Right Items -->
 		<div class="right-items">
-			<a href="/login"> Login </a>
+			{#if !$isLoggedIn}
+			<GithubLogin />
+
+			{:else}
+				<Menu/>
+			{/if}
+			<!-- <a href="/login"> Login </a> -->
 		</div>
 	</nav>
 </header>
@@ -45,9 +57,9 @@
 		justify-content: space-between;
 		align-items: center;
 	}
-	.right-items > a {
+	/* .right-items > a {
 		margin-right: 0.5rem;
-	}
+	} */
 	a {
 		color: var(--color-text);
 	}

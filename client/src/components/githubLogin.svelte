@@ -1,18 +1,15 @@
 <script lang="ts">
     import gh from '$lib/images/github.svg';
+	import { isLoggedIn } from '$stores/user';
 
 	function handleGithubLogin() {
 		// TODO: Handle GitHub OAuth login
+		isLoggedIn.set(true);
 	}
 </script>
 
-<section>
-	<h1>Login</h1>
+<button on:click={handleGithubLogin}>Login<img src={gh} alt="github logo" class="github-logo"/></button>
 
-	<div class="login-method">
-		<button on:click={handleGithubLogin}>Sign in with GitHub <img src={gh} alt="github logo" class="github-logo"/></button>
-	</div>
-</section>
 
 <style>
 	button {
@@ -21,9 +18,11 @@
 		display: flex; 
     	align-items: center; 
     	justify-content: center; 
+		/* background-color:var(--color-theme-2); */
+		/* color:#f7f7f77f; */
 	}
 	.github-logo {
-		height: 2rem;
+		height: 1.4rem;
 		padding-left: 0.2rem;
 		vertical-align: middle; 
 	}

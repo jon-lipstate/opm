@@ -26,6 +26,7 @@
       background-color: rgba(0, 0, 0, 0.1);
       margin: 0;
       padding-left: 0;
+      margin-bottom: 1rem;
     }
   
     li {

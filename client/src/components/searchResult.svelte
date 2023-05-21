@@ -2,22 +2,14 @@
 	import Tags from "$components/tags.svelte"
 	import { goto } from '$app/navigation';
 
-	export let pkg: PackageResult;
+	export let pkg: App.PackageResult;
 	let packageName = pkg.name.toLowerCase().replace(/\s/g, '-');
 
-	type PackageResult = {
-		version: string;
-		name: string;
-		kind: string;
-		updated: string;
-		downloads: number;
-		tags: string[];
-	};
 </script>
 
 <div class="container">
 	<h2>
-		<a href={`/curated/${packageName}/${pkg.version}`}>
+		<a href={`/packages/${packageName}/${pkg.version}`}>
 			{pkg.name} <small>v{pkg.version}</small>
 		</a>
 	</h2>

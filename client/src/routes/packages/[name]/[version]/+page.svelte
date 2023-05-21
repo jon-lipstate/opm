@@ -1,7 +1,11 @@
 <script lang="ts">
 import DetailsHeader from './detailsHeader.svelte'
 import TabsHeader from './tabsHeader.svelte'
-
+import Readme from './readme.svelte'
+import Signatures from './signatures.svelte'
+import Dependencies from './dependencies.svelte'
+import VersionRow from './versionRow.svelte'
+// TODO: Freestanding Badge? Non-portable?
 let details:App.PackageDetails = {
 	name: 'Yuki\'s ECS',
 	version: '0.2.3',
@@ -63,7 +67,7 @@ main :: proc() {
 </code>
 `
 };
-
+let versions= [{version:"1.2.3",date:"may 4, 2020",changes:"stuff and things"}]
 let selectedTab: number = 0;
 function handleTabSelect(event: CustomEvent) {
         selectedTab = event.detail;
@@ -77,11 +81,32 @@ function handleTabSelect(event: CustomEvent) {
 
 <main>
 	<DetailsHeader details={details}/>
-	<TabsHeader tabs={["Readme","Signatures","Dependancies","Versions"]} on:select={handleTabSelect}/>
+	<TabsHeader tabs={["Readme","Signatures","Dependencies","Versions"]} on:select={handleTabSelect}/>
 
 	<!-- <p>Currently selected tab: {selectedTab}</p> -->
+	{#if selectedTab === 0}
+	<Readme readme={details.readme}/>
+	{:else if selectedTab === 1}
+		<Signatures/>
+	{:else if selectedTab === 2}
+		<Dependencies/>
+	{:else if selectedTab === 3}
+		<table>
+			<thead>
+				<tr>
+					<th>Version</th>
+					<th>Date</th>
+					<th>Changes</th>
+				</tr>
+			</thead>
+			<tbody>
+				{#each versions as info}
+				<VersionRow {info}/>
 
-	<div>{@html details.readme}</div>
+			{/each}
+			</tbody>
+		</table>
+	{/if}
 
 </main>
 

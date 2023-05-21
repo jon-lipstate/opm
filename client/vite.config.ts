@@ -6,6 +6,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 		  $components: '/src/components',
+		  $stores:'/src/stores'
 		},
 	  },
 });

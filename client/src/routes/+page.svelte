@@ -1,4 +1,13 @@
 <script>
+	if (typeof window !== "undefined") {
+	window.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'k') {
+      e.preventDefault();
+	  //@ts-ignore
+      document.getElementById('query').focus();
+    }
+  });
+}
 </script>
 
 <svelte:head>
@@ -11,6 +20,7 @@
 	<form class="search-container" action="/search">
 		<input
 			type="search"
+			id="query"
 			name="query"
 			class="search-input"
 			placeholder="Search"
@@ -52,11 +62,16 @@
 		appearance: none;
 		width: 100%;
 		height: 1.3em;
-		background-color: #3883d235;
-		color: #f7f7f77f;
+		background-color: var(--color-bg-0);
+		color: var(--color-text);
 		border-radius: var(--border-radius);
 		vertical-align: middle;
 	}
+	::placeholder { 
+		color: lightgrey;
+		opacity: 1; 
+	}
+
 	.shortcut {
 		position: absolute;
 		top: calc(0.6rem);

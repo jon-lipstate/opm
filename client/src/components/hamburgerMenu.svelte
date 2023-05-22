@@ -9,6 +9,7 @@
     
     function handleLogout() {
       isLoggedIn.set(false);
+      isOpen = false;
     }
     
     onMount(() => {
@@ -17,11 +18,13 @@
           isOpen = false;
         }
       };
-    
-      window.addEventListener('click', closeMenu);
-      return () => {
-        window.removeEventListener('click', closeMenu);
-      };
+      if (typeof window !== "undefined") {
+        window.addEventListener('click', closeMenu);
+        return () => {
+          window.removeEventListener('click', closeMenu);
+        };
+      }
+      
     });
     </script>
     
@@ -35,13 +38,13 @@
     
       {#if isOpen}
         <div class="menu">
-          <a href="/new">New Package</a>
-          <a href="/manage">Manage Packages</a>
+          <a on:click={toggleMenu} href="/new">New Package</a>
+          <a on:click={toggleMenu} href="/manage">Manage Packages</a>
       {#if $isAdmin}
-          <a href="/admin">Admin</a>
+          <a on:click={toggleMenu} href="/admin">Admin</a>
       {/if}
-          <a href="/account">Account</a>
-          <a href="/" on:click={handleLogout}>Logout</a>
+          <a on:click={toggleMenu} href="/account">Account</a>
+          <a on:click={handleLogout} href="/" >Logout</a>
         </div>
       {/if}
     </nav>
@@ -83,6 +86,7 @@
       width: 100%;
       background: var(--color-bg-1);
       text-align: center;
+      z-index: 1;
     }
     
     .menu a {

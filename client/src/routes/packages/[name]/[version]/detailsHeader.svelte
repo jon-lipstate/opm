@@ -1,6 +1,9 @@
 <script lang="ts">
 	import Tags from "$components/tags.svelte"
     import gh from '$lib/images/github.svg';
+    import leaf from '$lib/icons/leaf.svg';
+    import yellowSand from '$lib/icons/yellow-sand.svg';
+    import redSand from '$lib/icons/red-sand.svg';
 
     export let details:App.PackageDetails
 </script>
@@ -10,7 +13,14 @@
         <h1>{details.name}</h1>
         <div>
          <span>v{details.version}</span> | 
-         <span>Last Update: {details.lastUpdated} </span> | 
+         <span>Last Update: {details.lastUpdated} 
+            {#if true}
+            <img src="{leaf}" alt="fresh">
+            {:else}
+            <img src="{yellowSand}" alt="stale">
+            <!-- <img src="{redSand}" alt="inactive"> -->
+            {/if}
+        </span> | 
          <span><a href="https://raw.githubusercontent.com/NoahR02/odin-ecs/main/LICENSE">{details.license}</a></span> | 
          <span>Depends On: <a href="#">{details.dependsOn.length}</a></span> |
          <span>Used By: <a href="#">{details.usedBy.length}</a></span>

@@ -17,8 +17,10 @@
 		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	--font-mono: 'Fira Mono', monospace;
 	/* --color-bg-0: #FF323E; */
-	--color-bg-0: #244773;
-	--color-bg-1: rgb(51, 76, 102);
+	--color-bg-0: #3364a0;
+	--color-p-0:#A06F33;
+	--color-bg-1: #334c66;
+	--color-p-1:#664D33;
 	--color-bg-2: rgb(37, 50, 64);
 	--color-theme-1: #F29154;
 	--color-theme-2: #ef7a30;

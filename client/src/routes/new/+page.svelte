@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { user } from '$stores/user';
+
     let githubRepo: Object|null;
     let isOwner = true
-    const user = {login:"jon-lipstate"} // TODO: ADD TO STORE
     let branches:string[] = [];
     let selectedBranch = -1;
 
@@ -9,16 +10,22 @@
     isOwner=true; // reset
     const fd = new FormData(e.target);
     const repo = fd.get('fetchRepo');
-    console.log("Repo",repo,fd);
+
     const response = await fetch(`https://api.github.com/repos/${repo}`);
     const data = await response.json();
-    // Do something with data
-    console.log("github fetch",data);
+    console.log(`GET /repos/${repo}`,data);
+
+    const orgRes = await fetch(`https://api.github.com/users/${$user.login}/orgs`)
+    const orgs = await orgRes.json();
+    console.log(`GET /users/${$user.login}/orgs`,orgs);
+
     if (data.owner.type == "Organization") {
         const org = data.owner.login
         // /orgs/:org/public_members/:username
         try {
-            const response = await fetch(`https://api.github.com/orgs/${org}/public_members/${user.login}`);
+            const response = await fetch(`https://api.github.com/orgs/${org}/public_members/${$user.login}`);
+            console.log(`GET /orgs/${org}/public_members/${$user.login}`, response);
+
             if (response.status == 404){
                 isOwner=false;
             }
@@ -27,6 +34,8 @@
     }
 
     const _branches = await fetch(`https://api.github.com/repos/${repo}/branches`);
+    console.log(`GET /repos/${repo}/branches`, _branches);
+
     branches = (await _branches.json()).map(x=>x.name)
     
     // const tags = await fetch(`https://api.github.com/repos/${repo}/git/refs/tags`);
@@ -70,6 +79,36 @@
         <button type="submit">Submit</button>
     </form>
     {/if}
+
+    <h3>New Package Generation Workflow:</h3>
+    <ol>
+        <li><strong>User Authentication</strong>: Require github oauth</li>
+        <li><strong>Display Pulldown of User/Organizations</strong>: The user selects from a dropdown of their username and organizations they are a part of.</li>
+        <li><strong>Display Pulldown of Projects</strong>: Depending on the selected user/organization, display a dropdown of available projects/repositories.</li>
+        <li><strong>Fetch Project Data</strong>: Once the user selects a project and clicks on the "Fetch" button, retrieve the data for the selected project.</li>
+        <li><strong>Hydrate Package</strong>: Pre-fill from github response</li>
+        <li><strong>Verification</strong>: Verify important contents for package creation:
+            <ul>
+                <li><strong>License Existence</strong>: Check that the project has a license.</li>
+                <li><strong>Readme Existence</strong>: Check that the project has a readme.</li>
+                <li><strong>Submitter Rights</strong>: Validate the user is the owner / authorized collaborator.</li>
+                <li><strong>Tags</strong>: Ensure tags exist and are valid.</li>
+                <li><strong>Pkg File Declaration</strong>: e.g. package.json is declared and properly configured.</li>
+            </ul>
+        </li>
+        <li><strong>Form Editing</strong>: Edit Values that are mutable
+            <ul>
+                <li>Select Package Kind (Lib,Demo,??)</li>
+                <li>License Alias? (TODO: license.key on github gives likely correct type?? eg bsd-3-clause, prefer it?)</li>
+                <li>Add Topic Tags, require 1, restrict new user to use existing?</li>
+            </ul>
+        </li>
+        <li><strong>Validation and Error Handling</strong>: Client + Server Side Verification</li>
+        <li><strong>Submission</strong>: Save to db, perhaps allow for pre-published state, or save for later with a 30day expiry?</li>
+        <li><strong>Confirmation</strong>: Redirect to new package details page</li>
+        <li><strong>Notifications</strong>: Opt in to Notifications (? future todo)</li>
+    </ol>
+    
 
 </main>
 

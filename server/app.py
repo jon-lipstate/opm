@@ -22,6 +22,7 @@ github_blueprint = make_github_blueprint()
 app.register_blueprint(github_blueprint, url_prefix="/github-callback")
 app.register_blueprint(search_bp)
 app.register_blueprint(details_bp)
+app.register_blueprint(user_bp)
 app.register_blueprint(login_bp, url_prefix="/login")
 
 

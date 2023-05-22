@@ -1,9 +1,9 @@
-from flask import Blueprint  
+from flask import Blueprint, jsonify
 from flask_dance.contrib.github import github
 
 user_bp = Blueprint('user', __name__)
 
-@user_bp.route('/api/user', methods=['GET'])
+@user_bp.route('/user', methods=['GET'])
 def user():
     if not github.authorized:
         return jsonify(user=None), 401  # Not Authorized

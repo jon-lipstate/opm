@@ -29,7 +29,7 @@ declare global {
 		links: Record<string,string>;
 		lastUpdated: string;
 		license: string;
-		kind: "unstable"|"community"|"curated"|"demo",
+		kind: string; //"unstable"|"community"|"curated"|"demo",
 		size: string; // kb
 		owners: { name: string; username: string }[];
 		stats: { allTimeDownloads: number };

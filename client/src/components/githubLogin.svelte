@@ -1,15 +1,17 @@
 <script lang="ts">
     import gh from '$lib/images/github.svg';
 	import { isLoggedIn } from '$stores/user';
+    import { goto } from '$app/navigation';
 
 	function handleGithubLogin() {
 		// TODO: Handle GitHub OAuth login
+        // Call your Flask server's /login endpoint
+        goto(`${import.meta.env.VITE_API_HOST}/login`)
 		isLoggedIn.set(true);
 	}
 </script>
 
 <button on:click={handleGithubLogin}>Login<img src={gh} alt="github logo" class="github-logo"/></button>
-
 
 <style>
 	button {

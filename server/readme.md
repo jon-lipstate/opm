@@ -1,3 +1,3 @@
 # OPM - Server
 
-todo: likely flask as quick prototype
+To start the server: `python app.py`

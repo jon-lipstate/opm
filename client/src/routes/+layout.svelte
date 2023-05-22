@@ -2,6 +2,17 @@
 	import Header from './Header.svelte';
 	import './styles.css';
 	import fjord from '$lib/images/fjord.png';
+	import { onMount } from 'svelte';
+	import { user } from '$stores/user'; 
+	onMount(async () => {
+    const res = await fetch(`${import.meta.env.VITE_API_HOST}/user`);
+    if (res.ok) {
+        const { user: userData } = await res.json();
+        $user.data = userData;
+		console.log(userData,$user.data);
+    }
+	console.log("res",res);
+});
 </script>
 
 <div class="app">

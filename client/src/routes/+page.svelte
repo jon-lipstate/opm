@@ -1,4 +1,20 @@
 <script>
+	import axios from 'axios';
+	import { goto } from '$app/navigation';
+    import { searchResults } from '$stores/search';
+
+	let query='';
+
+	async function handleSearch(e) {
+        try {
+            const response = await axios.post(`${import.meta.env.VITE_API_HOST}/search`, { query });
+			$searchResults = response.data;
+			goto(`/search?query=${encodeURIComponent(query)}`);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
 	if (typeof window !== "undefined") {
 	window.addEventListener('keydown', function(e) {
     if (e.ctrlKey && e.key === 'k') {
@@ -16,9 +32,10 @@
 </svelte:head>
 
 <section>
-	<!-- Search Bar-->
-	<form class="search-container" action="/search">
+	<!-- Search Bar--> 
+	<form class="search-container" action="/search" on:submit|preventDefault={handleSearch}>
 		<input
+			bind:value={query}
 			type="search"
 			id="query"
 			name="query"
@@ -27,6 +44,7 @@
 			spellcheck="false"
 			autocomplete="off"
 		/>
+		<button type="submit" style="display: none;"></button> <!-- Hidden submit button to trigger form submission -->
 		<div class="shortcut">
 			<kbd class="">Ctrl</kbd> <kbd class="">K</kbd>
 		</div>

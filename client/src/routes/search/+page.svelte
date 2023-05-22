@@ -1,27 +1,32 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import SearchResult from '../../components/searchResult.svelte';
+	import SearchResult from '$components/searchResult.svelte';
+    import { searchResults } from '$stores/search';
+	let results;
+    searchResults.subscribe(value => {
+        results = value;
+    });
 
 	let query = $page.url.searchParams.get('query') || 'No query provided';
 
-	const results = [
-		{
-			name: "Yuki's ECS",
-			version: '1.2.3',
-			updated: '1/1/1901',
-			downloads: 100000,
-			tags: ['ecs', 'engine'],
-			kind: 'Curated Library'
-		},
-		{
-			name: 'pico editor',
-			version: '0.0.1',
-			updated: '2/2/2902',
-			downloads: 10,
-			tags: ['tui', 'text-editor'],
-			kind: 'demo'
-		}
-	];
+	// const results = [
+	// 	{
+	// 		name: "Yuki's ECS",
+	// 		version: '1.2.3',
+	// 		updated: '1/1/1901',
+	// 		downloads: 100000,
+	// 		tags: ['ecs', 'engine'],
+	// 		kind: 'Curated Library'
+	// 	},
+	// 	{
+	// 		name: 'pico editor',
+	// 		version: '0.0.1',
+	// 		updated: '2/2/2902',
+	// 		downloads: 10,
+	// 		tags: ['tui', 'text-editor'],
+	// 		kind: 'demo'
+	// 	}
+	// ];
 </script>
 
 <svelte:head>
@@ -30,7 +35,7 @@
 </svelte:head>
 
 <section>
-	<h1>Results for '{query}'</h1>
+	<h1>Results for '{query}' ({results.length} results)</h1>
 	{#each results as pkg}
 		<SearchResult {pkg} />
 	{/each}

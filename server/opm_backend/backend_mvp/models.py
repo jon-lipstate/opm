@@ -17,7 +17,7 @@ class Package(models.Model):
 
 class Version(models.Model):
     """ Represents a single Odin Package Version """
-    id = models.CharField(max_length=200)
+    version_number = models.CharField(max_length=200)
     content = models.CharField(max_length=200)
     author = models.CharField(max_length=200)
     created = models.DateTimeField("date created")

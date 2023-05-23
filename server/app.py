@@ -3,7 +3,7 @@ import os
 load_dotenv()
 if os.getenv('FLASK_ENV') == 'development':
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-from flask import Flask, session, redirect
+from flask import Flask, session, redirect, url_for
 from flask_cors import CORS
 from flask_dance.contrib.github import make_github_blueprint, github
 from flask_dance.consumer import oauth_authorized
@@ -27,20 +27,40 @@ app.register_blueprint(details_bp)
 app.register_blueprint(auth_bp, url_prefix="/auth")
 
 
+@app.route("/")
+def index():
+    link1 = f"<a href=\"{url_for('list_all_urls')}\">{str(url_for('list_all_urls'))}</a>"
+    link2 = f"<a href=\"{url_for('github.login')}\">{str(url_for('github.login'))}</a>"
 
-@oauth_authorized.connect_via(github_blueprint)
-def github_logged_in(blueprint, token):
-    resp = github.get("/user")
-    assert resp.ok
-    user = resp.json()
-    session["login"] = user["login"]
-    session["token"] = token
-    print(session.keys())
-    return redirect(os.getenv("CLIENT_HOST"))
+    content = f"Welcome to the Flask backend.  <br>"
+    content += f"github.authorized = {github.authorized} <br>"
+    content += f"See {link1} for a list of available routes <br>"
+    content += f"See {link2} for GitHub OAuth Login <br>"
+
+    return content
+
+
+@app.route("/list-all-urls")
+def list_all_urls():
+    content = ""
+    for r in app.url_map.iter_rules():
+        content += f"{str(r.methods)} {str(r)} <br>"
+
+    return content
+
+
+@app.route("/login-github")
+def login():
+    if not github.authorized:
+        print(f"Redirect to: {url_for('github.login')}")
+        return redirect(url_for('github.login'))
+
+    return redirect(url_for('index'))
 
 # generate flask's SECRET_KEY
 # import secrets
 # print(secrets.token_hex(16))
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

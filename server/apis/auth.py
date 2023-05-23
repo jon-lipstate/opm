@@ -32,8 +32,9 @@ def user():
     print(user_data.keys())
 
     admin_list = ["Odin"]
-    is_admin = "name" in admin_list
+    is_admin = user_data["login"] in admin_list
     print(f"is_admin = {is_admin}")
+
     print("Returning ... (true branch)")
     return jsonify(user=user_data, isLoggedIn=True, isAdmin=is_admin), 200
 

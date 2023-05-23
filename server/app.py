@@ -49,6 +49,14 @@ def list_all_urls():
     return content
 
 
+@app.route("/inspect-session")
+def inspect_session():
+    content = "Contents of Flask session: <br>"
+    for key, val in session.items():
+        content += f"  {key}: {val} <br>"
+    return content
+
+
 @app.route("/login-github")
 def login():
     if not github.authorized:

@@ -6,8 +6,8 @@
 	function handleGithubLogin() {
 		// TODO: Handle GitHub OAuth login
         // Call your Flask server's /login endpoint
-		console.warn( `goto ${import.meta.env.VITE_API_HOST}/login`);
-        goto(`${import.meta.env.VITE_API_HOST}/login`)
+		console.warn( `goto ${import.meta.env.VITE_API_HOST}/auth/github`);
+        goto(`${import.meta.env.VITE_API_HOST}/auth/github`)
 		isLoggedIn.set(true);
 	}
 </script>

@@ -5,7 +5,10 @@
 	import { onMount } from 'svelte';
 	import { isLoggedIn,isAdmin, user } from '$stores/user'; 
 	onMount(async () => {
-		const res = await fetch(`${import.meta.env.VITE_API_HOST}/user`);
+		const res = await fetch(`${import.meta.env.VITE_API_HOST}/auth/user`);
+		console.warn(res);
+		console.log(document.cookie);
+		console.log(res.headers);
 		const data = await res.json(); 
 		if (res.ok) {
 			$user.data = data.user;
@@ -17,7 +20,7 @@
 			isLoggedIn.set(false);
 			isAdmin.set(false);
 		}
-		console.log("res",res);
+		console.log("res",res.status, data);
 	});
 </script>
 

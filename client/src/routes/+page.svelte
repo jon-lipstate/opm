@@ -2,7 +2,9 @@
 	import axios from 'axios';
 	import { goto } from '$app/navigation';
     import { searchResults } from '$stores/search';
+	import { user } from '$stores/user';
 
+	console.log($user)
 	let query='';
 
 	async function handleSearch(e) {

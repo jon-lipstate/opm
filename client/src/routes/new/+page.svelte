@@ -1,10 +1,22 @@
 <script lang="ts">
-	import { user } from '$stores/user';
+    import { onMount } from 'svelte';
+    import { goto } from '$app/navigation';
+	import { isLoggedIn } from '$stores/user';
 
+	import { user } from '$stores/user';
     let githubRepo: Object|null;
     let isOwner = true
     let branches:string[] = [];
     let selectedBranch = -1;
+    // idea - reject libs less than 250 LoC ??
+
+    onMount(() => {
+      if (!$isLoggedIn) {
+        goto('/')
+      }
+      
+    });
+
 
   async function onSubmit(e:any) {
     isOwner=true; // reset

@@ -3,10 +3,7 @@
 	import logo from '$lib/images/odin-logo.svg';
 	import GithubLogin from '$components/githubLogin.svelte';
 	import Menu from '$components/hamburgerMenu.svelte';
-	// import github from '$lib/images/git_light.svg';
-	function handleLogout() {
-    isLoggedIn.set(false);
-}
+
 </script>
 
 <header>

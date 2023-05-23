@@ -9,10 +9,14 @@ login_bp = Blueprint('login', __name__)
 @login_bp.route("/")
 def index():
     if not github.authorized:
-        print("redirect")
+        print("Redirect to ", url_for("github.login"))
         return redirect(url_for("github.login"))
+    print("AFTERRR",github.authorized)
+    print("AFTERRR",github.access_token)
     resp = github.get("/user")
-    assert resp.ok
+    print("RESPUSER",resp)
+
+    # assert resp.ok
     # return "You are @{login} on GitHub".format(login=resp.json()["login"])
     client_host = getenv("CLIENT_HOST")
     return redirect(client_host)

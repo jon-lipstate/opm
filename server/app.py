@@ -3,7 +3,6 @@ import os
 load_dotenv()
 if os.getenv('FLASK_ENV') == 'development':
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-
 from flask import Flask, session, redirect
 from flask_cors import CORS
 from flask_dance.contrib.github import make_github_blueprint, github
@@ -33,6 +32,10 @@ app.register_blueprint(auth_bp, url_prefix="/auth")
 def github_logged_in(blueprint, token):
     resp = github.get("/user")
     assert resp.ok
+    user = resp.json()
+    session["login"] = user["login"]
+    session["token"] = token
+    print(session.keys())
     return redirect(os.getenv("CLIENT_HOST"))
 
 # generate flask's SECRET_KEY

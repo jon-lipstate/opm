@@ -29,7 +29,7 @@ def logout():
 
 @auth_bp.route('/user', methods=['GET'])
 def user():
-    print("GITHUB",)
+    print("GITHUB",session.keys())
     if not github.authorized:
         return jsonify(user=None, isLoggedIn=False, isAdmin=False), 401  # Not Authorized
 

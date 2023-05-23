@@ -5,41 +5,35 @@ from os import getenv
 
 
 auth_bp = Blueprint('login', __name__)
-################################################################################################
-@auth_bp.route("/github")
-def index():
-    session.clear()
-    print("Redirect to ", url_for("github.login"))
-    if not github.authorized:
-        return redirect(url_for("github.login"))
-    resp = github.get("/user")
-    print("RESPUSER",resp)
 
-    # assert resp.ok
-    # return "You are @{login} on GitHub".format(login=resp.json()["login"])
-    client_host = getenv("CLIENT_HOST")
-    return redirect(client_host)
 
 @auth_bp.route("/logout")
 def logout():
     session.clear()
     client_host = getenv("CLIENT_HOST")
     return redirect(client_host)
-################################################################################################
+
 
 @auth_bp.route('/user', methods=['GET'])
 def user():
-    print("GITHUB",session.keys())
+    print()
+    print("Begin auth.py, def user():")
+    print(f"github.authorized = {github.authorized}")
+
     if not github.authorized:
-        return jsonify(user=None, isLoggedIn=False, isAdmin=False), 401  # Not Authorized
+        print("Returning (false branch) ... ")
+        return jsonify(message="GitHub not authorized", user=None, isLoggedIn=False, isAdmin=False), 401  # Not Authorized
 
     resp = github.get("/user")
-    print(">>>github user resp",resp.json())
     if not resp.ok:
         return jsonify(message="Could not fetch user info", isLoggedIn=False, isAdmin=False), 400
 
     user_data = resp.json()
-    is_admin = check_admin(user_data)  # replace with your actual admin checking function
-    
+    print(user_data.keys())
+
+    admin_list = ["Odin"]
+    is_admin = "name" in admin_list
+    print(f"is_admin = {is_admin}")
+    print("Returning ... (true branch)")
     return jsonify(user=user_data, isLoggedIn=True, isAdmin=is_admin), 200
 

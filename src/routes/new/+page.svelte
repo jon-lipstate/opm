@@ -1,8 +1,10 @@
 <script lang="ts">
+    import axios from 'axios'
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { page } from "$app/stores"
     import  AuthRequired  from "$components/authRequired.svelte"
+ 
 
     let githubRepo: Object|null;
     let isOwner = true
@@ -10,6 +12,22 @@
     let selectedBranch = -1;
     // idea - reject libs less than 250 LoC ??
 
+    // console.log($page.data.bearer)
+
+
+  onMount(async () => {
+    console.log($page)
+  //   let au = await axios.get(`https://api.github.com/user`,{
+  //   headers: {
+  //     'Authorization': `Bearer ${$page.data.token}`
+  //   }
+  // })
+  //   console.warn(au);
+    // let userRes = await axios.get(`https://api.github.com/users/jon-lipstate`)
+    // const user = userRes.data
+
+    // console.warn();
+  });
   async function onSubmit(e:any) {
     // isOwner=true; // reset
     // const fd = new FormData(e.target);

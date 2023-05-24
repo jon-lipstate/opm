@@ -1,19 +1,17 @@
 <script>
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
- 	inject({ mode: dev ? 'development' : 'production' });
+	inject({ mode: dev ? 'development' : 'production' });
 	//
 	import Header from './Header.svelte';
 	import './styles.css';
 	import fjord from '$lib/images/fjord.png';
-	import { page } from "$app/stores"
-	console.log("Session@Layout",$page.data.session)
-
 </script>
 
 <div class="app">
 	<Header />
 	<img id="fjord" src={fjord} alt="fjord" />
+	<span class="warning">WARNING: In Development - No Data Persisted</span>
 
 	<main>
 		<slot />
@@ -27,6 +25,12 @@
 </div>
 
 <style>
+	.warning {
+		color: rgba(183, 14, 14, 0.709);
+		text-align: center;
+		margin-top: 1rem;
+		font-style: italic;
+	}
 	#fjord {
 		opacity: 0.05;
 		color: rgba(255, 0, 0, 255);

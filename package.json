@@ -39,6 +39,7 @@
 	"dependencies": {
 		"@auth/core": "latest",
 		"@auth/sveltekit": "latest",
+		"@macfja/svelte-persistent-store": "^2.3.0",
 		"@vercel/analytics": "^1.0.1",
 		"axios": "^1.4.0",
 		"dotenv": "^16.0.3"

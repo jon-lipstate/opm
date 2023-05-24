@@ -1,41 +1,37 @@
 <script lang="ts">
+	import axios from 'axios';
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { searchResults } from '$stores/search';
+
 	import SearchResult from '$components/searchResult.svelte';
-    import { searchResults } from '$stores/search';
-	let results;
-    searchResults.subscribe(value => {
-        results = value;
-    });
+	import SearchBar from '$components/searchBar.svelte';
 
-	let query = $page.url.searchParams.get('query') || 'No query provided';
+	let results = [];
+	searchResults.subscribe((value) => {
+		results = value;
+	});
 
-	// const results = [
-	// 	{
-	// 		name: "Yuki's ECS",
-	// 		version: '1.2.3',
-	// 		updated: '1/1/1901',
-	// 		downloads: 100000,
-	// 		tags: ['ecs', 'engine'],
-	// 		kind: 'Curated Library'
-	// 	},
-	// 	{
-	// 		name: 'pico editor',
-	// 		version: '0.0.1',
-	// 		updated: '2/2/2902',
-	// 		downloads: 10,
-	// 		tags: ['tui', 'text-editor'],
-	// 		kind: 'demo'
-	// 	}
-	// ];
+	let query = $page.url.searchParams.get('query');
+	const queryMsg = query ?? 'No query provided';
+
+	onMount(async () => {
+		//TODO: persist the results instead to not hit the server with another query?
+		if ((!results || results.length == 0) && !!query) {
+			const response = await axios.post(`api/search`, { query });
+			results = response.data;
+		}
+	});
 </script>
 
 <svelte:head>
-	<title>Search Results for '{query}'</title>
+	<title>Search Results for '{queryMsg}'</title>
 	<meta name="description" content="Search Page" />
 </svelte:head>
 
 <section>
-	<h1>Results for '{query}' ({results.length} results)</h1>
+	<SearchBar />
+	<h1>Results for '{queryMsg}' ({results?.length ?? 0} results)</h1>
 	{#each results as pkg}
 		<SearchResult {pkg} />
 	{/each}

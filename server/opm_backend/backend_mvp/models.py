@@ -28,7 +28,7 @@ class Package(models.Model):
 
 class Version(models.Model):
     """ Represents a single Odin Package Version """
-    pkg_name = models.ForeignKey(Package, on_delete=models.RESTRICT, null=True)
+    package = models.ForeignKey(Package, on_delete=models.RESTRICT, null=True)
     tag_name = models.CharField(max_length=200)
     tag_hash = models.CharField(max_length=200)
     content = models.CharField(max_length=200)

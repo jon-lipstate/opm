@@ -6,6 +6,7 @@ import json
 # open-source
 #   Django Standard
 from django.core.validators import ValidationError
+from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
 from django.http import HttpResponseBadRequest   # 400
 from django.http import HttpResponseForbidden    # 403
@@ -54,9 +55,10 @@ def view_pkg_detail(request, package_id):
     return render(request, "backend_mvp/view_pkg_detail.html", {"pkg": pkg})
 
 
-def view_ver_detail(request, package_id, version_id):
-    pkg = get_object_or_404(Package, pk=package_id)
+def view_ver_detail(request, version_id):
     ver = get_object_or_404(Version, pk=version_id)
+    print(ver.__dict__)
+    pkg = get_object_or_404(Package, pk=ver.package_id)
     return render(request, "backend_mvp/view_ver_detail.html", {"pkg": pkg, "ver": ver})
 
 
@@ -131,7 +133,6 @@ def del_package(request):
 
 def versions(request, package_id):
     """ API, For one package, return a list of all assoc. Versions in the db, JSON format """
-
     pkg = get_object_or_404(Package, pk=package_id)
     vers = pkg.version_set.all()
     print(f"Query Set : vers got {len(vers)} versions!")
@@ -141,6 +142,13 @@ def versions(request, package_id):
         resp_data[i - 1] = vers[i - 1]
         print(resp_data[i - 1])
 
+    return JsonResponse(resp_data)
+
+
+def version(request, package_id, version_id):
+    """ API, For one package, return data about one Version in the db, JSON format """
+    ver = Version.objects.get(pk=version_id)
+    resp_data = model_to_dict(ver)
     return JsonResponse(resp_data)
 
 

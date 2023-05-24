@@ -12,6 +12,8 @@ urlpatterns = [
     path("package/<int:package_id>/version/<int:version_id>", views.view_ver_detail, name="view_ver_detail"),
     # API
     path("api/v0/", views.api_v0, name="api_v0"),
+    path("api/v0/get_jwt", views.get_jwt, name="get_jwt"),
     path("api/v0/packages", views.packages, name="api_packages"),
+    path("api/v0/create_package", views.create_package, name="api_create_package"),
     path("api/v0/package/<int:package_id>/versions", views.versions, name="api_versions"),
 ]

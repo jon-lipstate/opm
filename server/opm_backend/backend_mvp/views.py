@@ -1,5 +1,17 @@
+""" Views for Backend MVP """
+
+# imports
+# base
+# open-source
+#   Django Standard
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponseBadRequest   # 400
+from django.http import HttpResponseForbidden    # 403
+from django.http import HttpResponseNotFound     # 404
+from django.http import HttpResponseNotAllowed   # 405
+from django.http import HttpResponseServerError  # 500
+# local
 from .models import Package, Version
 
 
@@ -27,9 +39,16 @@ def view_ver_detail(request, package_id, version_id):
     return render(request, "backend_mvp/view_ver_detail.html", {"pkg": pkg, "ver": ver})
 
 
-
 def api_v0(request):
     return HttpResponse("Welcome to API, v0")
+
+
+def get_jwt(request):
+    # Expect GitHub Token in response body
+    if not "token is present":
+        return HttpResponse("Nope, not authorized")
+    else:
+        return HttpResponse("Welcome authorized user")
 
 
 def packages(request):
@@ -45,9 +64,18 @@ def packages(request):
 
 
 def create_package(request):
-    # todo
-    # Get JSON, validate, write to db
-    return HttpResponse("todo")
+    allowed_methods = ["POST"]
+    if request.method not in allowed_methods:
+        return HttpResponseNotAllowed(
+            allowed_methods,
+            """
+            <h1>HTTP ERROR 405</h1>
+            <p>Oh fiddle sticks, you used a disallowed method ...</p>
+            """
+        )
+    else:
+        resp_data = {"package_id": 1}
+    return JsonResponse(resp_data)
 
 
 def mod_package(request):

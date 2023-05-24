@@ -1,0 +1,8 @@
+<h1>{{ pkg.name }}</h1>
+<ul>
+{% for ver in pkg.version_set.all %}
+    <li>{{ ver.tag_name }} : {{ ver.tag_hash }}</li>
+{% endfor %}
+</ul>
+
+Back to <a href="/backend_mvp/api/v0/packages">All Packages</a>

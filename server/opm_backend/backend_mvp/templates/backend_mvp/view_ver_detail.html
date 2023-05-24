@@ -1,7 +1,9 @@
-<h1>{{ pkg.name }}</h1>
-<h2>{{ ver.name }}</h2>
+<h1> Package = {{ pkg.name }}</h1>
+<h2> Version = {{ ver.tag_name }}</h2>
 <ul>
-    <li>{{ ver.tag_name }}</li>
-    <li>{{ ver.tag_hash }}</li>
-    <li>{{ ver.created  }}</li>
+    <li>version_tag_hash: {{ ver.tag_hash }}</li>
+    <li>version_author: {{ ver.author   }}</li>
+    <li>version_created: {{ ver.created  }}</li>
 </ul>
+
+Back to <a href="/backend_mvp/package/{{ pkg.id }}/">{{ pkg.name }}</a>

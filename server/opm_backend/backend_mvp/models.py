@@ -13,6 +13,8 @@ class Package(models.Model):
     # Type could be Lib, Demo etc.
     type = models.CharField(max_length=200)
     license = models.CharField(max_length=200)
+    # Development status could be alpha, beta, pre-published, final etc.
+    dev_status = models.CharField(max_length=200)
 
     def __str__(self):
         return self.name
@@ -26,8 +28,6 @@ class Version(models.Model):
     content = models.CharField(max_length=200)
     author = models.CharField(max_length=200)
     created = models.DateTimeField("date created")
-    # State could be alpha, beta, pre-published, final etc.
-    state = models.CharField(max_length=200)
 
     def __str__(self):
         return f"{self.pkg_name}_{self.version_number}"

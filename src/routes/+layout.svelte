@@ -6,6 +6,9 @@
 	import Header from './Header.svelte';
 	import './styles.css';
 	import fjord from '$lib/images/fjord.png';
+	import { page } from "$app/stores"
+	console.log("Session@Layout",$page.data.session)
+
 </script>
 
 <div class="app">

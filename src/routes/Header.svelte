@@ -3,7 +3,7 @@
 	import logo from '$lib/images/odin-logo.svg';
 	import GithubLogin from '$components/githubLogin.svelte';
 	import Menu from '$components/hamburgerMenu.svelte';
-	console.log("Session",$page.data.session)
+	console.log("Session@Header",$page.data.session)
 </script>
 
 <header>

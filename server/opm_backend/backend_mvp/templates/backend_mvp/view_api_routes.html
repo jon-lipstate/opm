@@ -9,9 +9,11 @@
 <ul>
     <li><a href="{% url 'backend_mvp:get_jwt' %}"> {% url 'backend_mvp:get_jwt' %}</a></li>
     <li><a href="{% url 'backend_mvp:api_packages' %}"> {% url 'backend_mvp:api_packages' %}</a></li>
-    <li><a href="{% url 'backend_mvp:api_create_package' %}"> {% url 'backend_mvp:api_create_package' %}</a></li>
     <li>{% url 'backend_mvp:api_v0' %}package/&lt;package-id&gt;/versions</li>
-    <li>{% url 'backend_mvp:api_v0' %}package/&lt;package-id&gt;/version/&lt;version-id&gt;</li>
+    <li><a href="{% url 'backend_mvp:api_create_package' %}"> {% url 'backend_mvp:api_create_package' %}</a> (POST)</li>
+    <li><a href="{% url 'backend_mvp:api_versions_all' %}">{% url 'backend_mvp:api_versions_all' %}</a></li>
+    <li>{% url 'backend_mvp:api_v0' %}version/&lt;version-id&gt;</li>
+    <li><a href="{% url 'backend_mvp:api_create_version' %}">{% url 'backend_mvp:api_create_version' %}</a> (POST)</li>
 </ul>
 
 </body>

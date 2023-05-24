@@ -57,7 +57,6 @@ def view_pkg_detail(request, package_id):
 
 def view_ver_detail(request, version_id):
     ver = get_object_or_404(Version, pk=version_id)
-    print(ver.__dict__)
     pkg = get_object_or_404(Package, pk=ver.package_id)
     return render(request, "backend_mvp/view_ver_detail.html", {"pkg": pkg, "ver": ver})
 
@@ -131,7 +130,7 @@ def del_package(request):
     return HttpResponse("todo")
 
 
-def versions(request, package_id):
+def versions_for_pkg(request, package_id):
     """ API, For one package, return a list of all assoc. Versions in the db, JSON format """
     pkg = get_object_or_404(Package, pk=package_id)
     vers = pkg.version_set.all()
@@ -145,16 +144,58 @@ def versions(request, package_id):
     return JsonResponse(resp_data)
 
 
-def version(request, package_id, version_id):
+def versions_all(request):
+    """ API, Return a list of all Versions in the db, JSON format """
+    vers = Version.objects.all()
+    print(f"Query Set : vers got {len(vers)} versions!")
+    vers = vers.values()
+    resp_data = dict()
+    for i in range(1, len(vers) + 1):
+        resp_data[i - 1] = vers[i - 1]
+        print(resp_data[i - 1])
+
+    return JsonResponse(resp_data)
+
+
+def version(request, version_id):
     """ API, For one package, return data about one Version in the db, JSON format """
     ver = Version.objects.get(pk=version_id)
     resp_data = model_to_dict(ver)
     return JsonResponse(resp_data)
 
-
+@csrf_exempt
 def create_version(request):
-    pass
-    return HttpResponse("todo")
+    allowed_methods = ["POST"]
+    if request.method not in allowed_methods:
+        return HttpResponseNotAllowed(allowed_methods, error_msg_405)
+    else:
+        try:
+            json_data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            print("Error: JSON Decode Error")
+            print(e)
+            return HttpResponseServerError(error_msg_500)
+
+        try:
+            new_ver = Version()
+            # Get these from request body
+            for key, val in json_data.items():
+                if key == "package":
+                    new_ver.package = Package.objects.get(pk=val)
+                else:
+                    setattr(new_ver, key, val)
+            # Set these ourselves
+            new_ver.created = timezone.now()
+            # Validate
+            new_ver.full_clean()
+        except ValidationError as e:
+            print("Error: Model validation error")
+            print(e)
+            return HttpResponseBadRequest(error_msg_400 + str(e))
+
+        new_ver.save()
+
+        return HttpResponse("200 Success")
 
 
 def orgs(request):

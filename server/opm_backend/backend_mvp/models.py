@@ -36,7 +36,7 @@ class Version(models.Model):
     created = models.DateTimeField("date created")
 
     def __str__(self):
-        return f"{self.pkg_name}_{self.tag_name}"
+        return f"{self.package}_{self.tag_name}"
 
 
 class Org(models.Model):

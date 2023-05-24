@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { isAdmin, isLoggedIn } from '$stores/user';
     
     let isOpen = false;
     function toggleMenu() {
@@ -8,7 +7,6 @@
     }
     
     function handleLogout() {
-      isLoggedIn.set(false);
       isOpen = false;
     }
     
@@ -40,11 +38,11 @@
         <div class="menu">
           <a on:click={toggleMenu} href="/new">New Package</a>
           <a on:click={toggleMenu} href="/manage">Manage Packages</a>
-      {#if $isAdmin}
+      <!-- {#if $isAdmin}
           <a on:click={toggleMenu} href="/admin">Admin</a>
-      {/if}
+      {/if} -->
           <a on:click={toggleMenu} href="/account">Account</a>
-          <a on:click={handleLogout} href="/" >Logout</a>
+          <a on:click={handleLogout} href="/auth/signout" >Logout</a>
         </div>
       {/if}
     </nav>

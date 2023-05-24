@@ -1,64 +1,56 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-	import { isLoggedIn } from '$stores/user';
+    import { page } from "$app/stores"
+    import  AuthRequired  from "$components/authRequired.svelte"
 
-	import { user } from '$stores/user';
     let githubRepo: Object|null;
     let isOwner = true
     let branches:string[] = [];
     let selectedBranch = -1;
     // idea - reject libs less than 250 LoC ??
 
-    onMount(() => {
-      if (!$isLoggedIn) {
-        goto('/')
-      }
-      
-    });
-
-
   async function onSubmit(e:any) {
-    isOwner=true; // reset
-    const fd = new FormData(e.target);
-    const repo = fd.get('fetchRepo');
+    // isOwner=true; // reset
+    // const fd = new FormData(e.target);
+    // const repo = fd.get('fetchRepo');
 
-    const response = await fetch(`https://api.github.com/repos/${repo}`);
-    const data = await response.json();
-    console.log(`GET /repos/${repo}`,data);
+    // const response = await fetch(`https://api.github.com/repos/${repo}`);
+    // const data = await response.json();
+    // console.log(`GET /repos/${repo}`,data);
 
-    const orgRes = await fetch(`https://api.github.com/users/${$user.login}/orgs`)
-    const orgs = await orgRes.json();
-    console.log(`GET /users/${$user.login}/orgs`,orgs);
+    // const orgRes = await fetch(`https://api.github.com/users/${$user.login}/orgs`)
+    // const orgs = await orgRes.json();
+    // console.log(`GET /users/${$user.login}/orgs`,orgs);
 
-    if (data.owner.type == "Organization") {
-        const org = data.owner.login
-        // /orgs/:org/public_members/:username
-        try {
-            const response = await fetch(`https://api.github.com/orgs/${org}/public_members/${$user.login}`);
-            console.log(`GET /orgs/${org}/public_members/${$user.login}`, response);
+    // if (data.owner.type == "Organization") {
+    //     const org = data.owner.login
+    //     // /orgs/:org/public_members/:username
+    //     try {
+    //         const response = await fetch(`https://api.github.com/orgs/${org}/public_members/${$user.login}`);
+    //         console.log(`GET /orgs/${org}/public_members/${$user.login}`, response);
 
-            if (response.status == 404){
-                isOwner=false;
-            }
-        } catch(e){} // nop
+    //         if (response.status == 404){
+    //             isOwner=false;
+    //         }
+    //     } catch(e){} // nop
         
-    }
+    // }
 
-    const _branches = await fetch(`https://api.github.com/repos/${repo}/branches`);
-    console.log(`GET /repos/${repo}/branches`, _branches);
+    // const _branches = await fetch(`https://api.github.com/repos/${repo}/branches`);
+    // console.log(`GET /repos/${repo}/branches`, _branches);
 
-    branches = (await _branches.json()).map(x=>x.name)
+    // branches = (await _branches.json()).map(x=>x.name)
     
-    // const tags = await fetch(`https://api.github.com/repos/${repo}/git/refs/tags`);
-    // console.log("tags",await tags.json())
-    if (isOwner) {
-        githubRepo = data;
-        setTimeout(()=>{updateRepo()},10); // need a tick to occur so the form shows up
-    } else{
-        // front-end rejection - also verify on server @submit
-        alert("you are not an owner, cannot proceed")
-    }
+    // // const tags = await fetch(`https://api.github.com/repos/${repo}/git/refs/tags`);
+    // // console.log("tags",await tags.json())
+    // if (isOwner) {
+    //     githubRepo = data;
+    //     setTimeout(()=>{updateRepo()},10); // need a tick to occur so the form shows up
+    // } else{
+    //     // front-end rejection - also verify on server @submit
+    //     alert("you are not an owner, cannot proceed")
+    // }
   }
   function updateRepo() {
     let form = document.getElementById('repoForm') as HTMLFormElement;
@@ -72,6 +64,7 @@
   }
 </script>
 
+{#if $page.data.session}
 <main>
     <h1>New Package</h1>
 	{#if githubRepo == null}
@@ -120,9 +113,11 @@
         <li><strong>Confirmation</strong>: Redirect to new package details page</li>
         <li><strong>Notifications</strong>: Opt in to Notifications (? future todo)</li>
     </ol>
-    
-
 </main>
+
+{:else}
+  <AuthRequired/>
+{/if}
 
 <style>
 

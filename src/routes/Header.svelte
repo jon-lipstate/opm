@@ -1,9 +1,8 @@
 <script>
-	import { isLoggedIn } from '$stores/user';
+  	import { page } from "$app/stores"
 	import logo from '$lib/images/odin-logo.svg';
 	import GithubLogin from '$components/githubLogin.svelte';
 	import Menu from '$components/hamburgerMenu.svelte';
-
 </script>
 
 <header>
@@ -16,10 +15,15 @@
 		</div>
 		<!-- Right Items -->
 		<div class="right-items">
-			{#if !$isLoggedIn}
+			{#if !$page.data.session}
 			<GithubLogin />
 
 			{:else}
+				{#if $page.data.session.user?.image}
+					<span
+					style="background-image: url('{$page.data.session.user.image}')"
+					class="avatar"/>
+				{/if}
 				<Menu/>
 			{/if}
 			<!-- <a href="/login"> Login </a> -->
@@ -28,6 +32,16 @@
 </header>
 
 <style>
+	.avatar {
+		border-radius: 2rem;
+		float: left;
+		margin-right: 1rem;
+		height: 2rem;
+		width: 2rem;
+		background-color: white;
+		background-size: cover;
+		background-repeat: no-repeat;
+	}
 	nav {
 		display: flex;
 		flex-direction: row;

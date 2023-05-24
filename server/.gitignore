@@ -1,6 +1,8 @@
 
 # General
+.env
 venv/
+venv2/
 *.sqlite3
 
 # Python

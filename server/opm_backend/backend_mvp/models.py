@@ -21,7 +21,6 @@ class Package(models.Model):
     created = models.DateTimeField("date created")
     # todo change versions so it points to version object(s) below
     versions = models.CharField(max_length=200)
-    license = models.CharField(max_length=200)
 
     def __str__(self):
         return self.name

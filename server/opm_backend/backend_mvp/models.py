@@ -2,6 +2,17 @@ from django.db import models
 from django.db.models import CharField
 
 
+class Label(models.Model):
+    name = models.CharField(max_length=200)
+    # Could label development status (alpha, beta, pre-published, final etc.)
+    # Could label various categories (Lib, Demo etc.)
+    # Could label various types of licenses
+
+
+class LabelGroup(models.Model):
+    name = models.CharField(max_length=200)
+
+
 class Package(models.Model):
     """ Represents an Odin Package """
     name = models.CharField(max_length=200)
@@ -10,11 +21,7 @@ class Package(models.Model):
     created = models.DateTimeField("date created")
     # todo change versions so it points to version object(s) below
     versions = models.CharField(max_length=200)
-    # Type could be Lib, Demo etc.
-    type = models.CharField(max_length=200)
     license = models.CharField(max_length=200)
-    # Development status could be alpha, beta, pre-published, final etc.
-    dev_status = models.CharField(max_length=200)
 
     def __str__(self):
         return self.name
@@ -30,7 +37,7 @@ class Version(models.Model):
     created = models.DateTimeField("date created")
 
     def __str__(self):
-        return f"{self.pkg_name}_{self.version_number}"
+        return f"{self.pkg_name}_{self.tag_name}"
 
 
 class Org(models.Model):

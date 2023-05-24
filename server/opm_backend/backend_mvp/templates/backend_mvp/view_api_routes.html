@@ -7,7 +7,8 @@
 <body>
 <h1> Backend MVP - API Routes </h1>
 <ul>
-  <li><a href="http://localhost:8000/backend_mvp/api/v0/packages">api/v0/Packages</a></li>
+    <li><a href="{% url 'backend_mvp:api_packages' %}"> {% url 'backend_mvp:api_packages' %}</a></li>
+    <li>{% url 'backend_mvp:api_v0' %}package/&lt;package-id&gt;/versions</li>
 </ul>
 
 </body>

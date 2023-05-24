@@ -27,16 +27,18 @@ def view_ver_detail(request, package_id, version_id):
     return render(request, "backend_mvp/view_ver_detail.html", {"pkg": pkg, "ver": ver})
 
 
+
+def api_v0(request):
+    return HttpResponse("Welcome to API, v0")
+
+
 def packages(request):
-    """ Return a list of all packages in the db, JSON format """
+    """ API, Return a list of all packages in the db, JSON format """
     resp_data = dict()
     pkg_list = Package.objects.all()
+    print(f"Query Set : pkg_list got {len(pkg_list)} packages!")
     pkg_list = pkg_list.values()
-
-    print(len(pkg_list))
-
     for i in range(1, len(pkg_list) + 1):
-        print(i)
         resp_data[i - 1] = pkg_list[i - 1]
 
     return JsonResponse(resp_data)
@@ -60,16 +62,32 @@ def del_package(request):
     return HttpResponse("todo")
 
 
+def versions(request, package_id):
+    """ API, For one package, return a list of all assoc. Versions in the db, JSON format """
+
+    pkg = get_object_or_404(Package, pk=package_id)
+    vers = pkg.version_set.all()
+    print(f"Query Set : vers got {len(vers)} versions!")
+    vers = vers.values()
+    resp_data = dict()
+    for i in range(1, len(vers) + 1):
+        resp_data[i - 1] = vers[i - 1]
+        print(resp_data[i - 1])
+
+    return JsonResponse(resp_data)
+
+
 def create_version(request):
-    ver = get_object_or_404(Version, pk=version_id)
+    pass
     return HttpResponse("todo")
 
 
-def organizations(request):
-    ver = get_object_or_404(Version, pk=version_id)
+def orgs(request):
+    """ API, Return a list of all orgs in the db, JSON format """
+    pass
     return HttpResponse("todo")
 
 
-def create_organization(request):
-    ver = get_object_or_404(Version, pk=version_id)
+def create_org(request):
+    pass
     return HttpResponse("todo")

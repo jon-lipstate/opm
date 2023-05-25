@@ -4,8 +4,16 @@ import { GITHUB_ID, GITHUB_SECRET, AUTH_SECRET } from '$env/static/private';
 import axios from 'axios';
 
 export const handle = SvelteKitAuth({
-	//@ts-ignore
-	providers: [GitHub({ clientId: GITHUB_ID, clientSecret: GITHUB_SECRET })],
+	providers: [
+		//@ts-ignore
+		GitHub({
+			clientId: GITHUB_ID,
+			clientSecret: GITHUB_SECRET,
+			authorization: {
+				params: { scope: 'read:org read:user user:email' }
+			}
+		})
+	],
 	secret: AUTH_SECRET,
 	trustHost: true,
 	callbacks: {

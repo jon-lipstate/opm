@@ -1,0 +1,34 @@
+<script>
+	import { generateRandomName } from '$lib/utils';
+	import { createEventDispatcher } from 'svelte';
+	const dispatch = createEventDispatcher();
+	//
+	export let options = [];
+	export let renderAs = (a) => a;
+	export let value = ''; // int - leave as '' for the prefix
+	export let label = '';
+	export let prefix = '';
+	export let disabled = false;
+	//
+	function handleChange(event) {
+		dispatch('change', event.target.value);
+	}
+	const name = `${label}_${generateRandomName(8)}`;
+</script>
+
+<label for={name}>{label}</label>
+<select bind:value {name} on:change={handleChange} {disabled}>
+	{#if !!prefix}
+		<option value="" disabled>-- {prefix} -- </option>
+	{/if}
+	{#each options as option, i}
+		<option value={i}>{renderAs(option)}</option>
+	{/each}
+</select>
+
+<style lang="scss">
+	select {
+		background-color: var(--color-bg-1);
+		color: var(--color-text);
+	}
+</style>

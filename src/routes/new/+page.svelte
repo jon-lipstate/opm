@@ -35,6 +35,10 @@
 		// );
 		// console.log(response.data);
 	}
+	function handleShowForks() {
+		showForks = !showForks;
+		console.log(showForks);
+	}
 </script>
 
 {#if $page.data.session}
@@ -46,6 +50,12 @@
 				<option value={repo}>{repo}</option>
 			{/each}
 		</select>
+		<label>
+			<input type="checkbox" bind:checked={showForks} on:click={handleShowForks} />
+			Show forks
+		</label>
+
+		<pre>{JSON.stringify(repos.find((x) => x.name == selectedRepo) ?? '', null, 2)}</pre>
 
 		<!-- 
 		{#if githubRepo == null}

@@ -1,29 +1,28 @@
 import { json } from '@sveltejs/kit';
 
 export async function POST(event) {
-  const body = JSON.parse(await event.request.text())
-  console.warn(body);
+	const body = JSON.parse(await event.request.text());
+	console.warn(body);
 
-  return json(details)
+	return json(details);
 }
 
-
-let details:App.PackageDetails = {
-	name: 'Yuki\'s ECS',
+let details: App.PackageDetails = {
+	name: "Yuki's ECS",
 	version: '0.2.3',
 	description: 'A prototype ECS engine, written by Yuki',
-	tags: ["ecs","engine"],
-	versions: ["0.9.5","0.5.3"],
-	funding: ["patreon","github"],
-	dependsOn: ["something"],
-	usedBy: ["something_else"],
+	tags: ['ecs', 'engine'],
+	versions: ['0.9.5', '0.5.3'],
+	funding: ['patreon', 'github'],
+	dependsOn: ['something'],
+	usedBy: ['something_else'],
 	requirements: { minCompilierVersion: 'dev-2023-05:118ab605' },
-	links: {repo:'https://github.com/NoahR02/odin-ecs',discord:''},
+	links: { repo: 'https://github.com/NoahR02/odin-ecs', discord: '' },
 	lastUpdated: '2/2/23',
 	license: 'Unlicense',
 	size: '123kb',
 	kind: 'unstable',
-	owners: [{name:"NoahR02",username:"NoahR02"}],
+	owners: [{ name: 'NoahR02', username: 'NoahR02' }],
 	stats: { allTimeDownloads: 42 },
 	readme: `<p align="center" style="width:"> 
  <img width="100%" height="250" src="https://raw.githubusercontent.com/NoahR02/odin-ecs/main/repo_images/ecs-readme.svg">

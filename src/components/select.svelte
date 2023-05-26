@@ -13,11 +13,14 @@
 	function handleChange(event) {
 		dispatch('change', event.target.value);
 	}
+	function handleClick(event) {
+		dispatch('click', event);
+	}
 	const name = `${label}_${generateRandomName(8)}`;
 </script>
 
 <label for={name}>{label}</label>
-<select bind:value {name} on:change={handleChange} {disabled}>
+<select bind:value {name} on:change={handleChange} on:click={handleClick} {disabled}>
 	{#if !!prefix}
 		<option value="" disabled>-- {prefix} -- </option>
 	{/if}

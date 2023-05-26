@@ -3,9 +3,8 @@ import axios from 'axios';
 import { getAuth } from '../../auth.js';
 
 export async function GET(event) {
+	const { login, authHeader, session } = await getAuth(event);
 	try {
-		const { login, authHeader } = await getAuth(event);
-
 		const repoRes = await axios.get(`https://api.github.com/user/repos`, authHeader);
 
 		const repos = repoRes.data.filter((x) => x.language == 'Odin');
@@ -20,6 +19,7 @@ export async function GET(event) {
 		}
 		return json(repos);
 	} catch (e) {
+		console.error(`>>> getPublicGists: "${session}"`);
 		//@ts-ignore
 		return fail(503, `api: getPublicRepos, err: ${e}`);
 	}

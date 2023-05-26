@@ -1,7 +1,7 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 declare global {
-	type auth = { login: string; authHeader: any };
+	type auth = { login: string; authHeader: any; session: any };
 	namespace App {
 		// interface Error {}
 		// interface Locals {}
@@ -20,21 +20,37 @@ declare global {
 			name: string;
 			version: string;
 			description: string;
+			archived: boolean;
 			tags: string[];
 			readme: string; // markdown, html formatted
 			versions: string[];
-			funding: string[]; // github patreon etc?
-			dependsOn: string[];
-			usedBy: string[];
-			requirements: { minCompilierVersion: string };
+			funding: Record<string, string>; // github patreon etc?
+			dependsOn: NamedVersion;
+			// usedBy: string[];
+			requirements: { compiler: string };
 			links: Record<string, string>;
 			lastUpdated: string;
 			license: string;
 			kind: string; //"unstable"|"community"|"curated"|"demo",
 			size: string; // kb
 			owners: { name: string; username: string }[];
-			stats: { allTimeDownloads: number };
+			// stats: { allTimeDownloads: number };
 		};
+		type ModPkg = {
+			name: string;
+			version: string;
+			description: string;
+			authors: string[];
+			repository: URL;
+			license: string;
+			keywords: string[];
+			funding: Record<string, string>?;
+			kind: 'Demo' | 'Library';
+			os: string['Linux' | 'Windows' | 'Darwin' | 'Essence'];
+			compiler: string;
+			dependencies: NamedVersion;
+		};
+		type NamedVersion = Record<string, string>; // {name:version}
 	}
 }
 

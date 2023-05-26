@@ -3,9 +3,9 @@ import axios from 'axios';
 import { getAuth } from '../../auth.js';
 
 export async function GET(event) {
-	try {
-		const { login, authHeader } = await getAuth(event);
+	const { login, authHeader, session } = await getAuth(event);
 
+	try {
 		const gistRes = await axios.get(`https://api.github.com/users/${login}/gists`, authHeader);
 		// Currently, the GitHub API doesn't support filtering gists by language directly
 		// so we have to fetch all gists, then filter them manually.
@@ -15,7 +15,6 @@ export async function GET(event) {
 			for (const file of Object.values(gist.files)) {
 				//@ts-ignore
 				if (file.language === 'Odin') {
-					console.warn(file);
 					return true;
 				}
 			}
@@ -24,6 +23,7 @@ export async function GET(event) {
 
 		return json(gists);
 	} catch (e) {
+		console.error(`>>> getPublicGists: "${session}"`);
 		//@ts-ignore
 		return fail(503, `api: getPublicGists, err: ${e}`);
 	}

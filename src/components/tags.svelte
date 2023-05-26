@@ -5,24 +5,23 @@
 </script>
 
 <div>
-    {#each tags as tag}
-        <button class="tag" on:click={() => goto(`/search?tag=${encodeURIComponent(tag)}`)}>
-            {tag}
-        </button>
-    {/each}
+	{#each tags as tag}
+		<button class="tag" on:click={() => goto(`/search?tag=${encodeURIComponent(tag)}`)}>
+			{tag}
+		</button>
+	{/each}
 </div>
 
 <style>
-
 	.tag {
 		border: none;
 		background-color: var(--color-theme-3);
 		color: #ddd;
-		padding: 5px 10px;
+		padding: 3px 7px;
 		text-align: center;
 		text-decoration: none;
 		display: inline-block;
-		font-size: 14px;
+		font-size: 0.7rem;
 		margin: 2px 2px;
 		cursor: pointer;
 		border-radius: 16px;

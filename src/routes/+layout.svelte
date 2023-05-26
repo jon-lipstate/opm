@@ -11,7 +11,7 @@
 <div class="app">
 	<Header />
 	<img id="fjord" src={fjord} alt="fjord" />
-	<span class="warning">WARNING: In Development - No Data Persisted</span>
+	<span class="warning">WARNING: In Development - No Data is Persisted</span>
 
 	<main>
 		<slot />

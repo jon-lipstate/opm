@@ -10,6 +10,7 @@ export async function getAuth(event): Promise<auth> {
 	};
 	return {
 		login,
-		authHeader
+		authHeader,
+		session
 	};
 }

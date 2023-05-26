@@ -3,7 +3,7 @@
 	import gh from '$lib/images/github.svg';
 	import leaf from '$lib/icons/leaf.svg';
 	import yellowSand from '$lib/icons/yellow-sand.svg';
-	import redSand from '$lib/icons/red-sand.svg';
+	// import redSand from '$lib/icons/red-sand.svg';
 	import { timeAgo } from '$lib/utils';
 	import { createEventDispatcher } from 'svelte';
 	const dispatch = createEventDispatcher();
@@ -12,9 +12,14 @@
 
 <header class="details-header">
 	<div class="row">
-		<h1>{details.name}</h1>
+		<h1>
+			<a href={details.links.url}>{details.name}</a>
+		</h1>
 		<div class="features">
-			<span>v{details.version}</span> |
+			<span>v{details.version}</span>
+			|
+			<span class="license">{details.license}</span>
+			|
 			<span>
 				Updated: {timeAgo(details.lastUpdated)}
 				{#if true}
@@ -25,26 +30,31 @@
 				{/if}
 			</span>
 			|
-			<span><a href="https://raw.githubusercontent.com/NoahR02/odin-ecs/main/LICENSE">{details.license}</a></span> |
-			<span
-				>Depends On: <a href="#/" on:click={() => dispatch('clickDeps')}
-					>{Object.keys(details.dependsOn)?.length ?? 0}</a
-				></span
-			>
-			|
-			<span>{details.size} bytes</span> |
-			<span>Compiler: {details.requirements.compiler}</span>
+			<span>{details.size} kb</span>
+
 			<!-- <span>Used By: <a href="#">{details.usedBy?.length}</a></span> -->
 		</div>
 	</div>
 
 	<div class="row">
-		<a class="repo-link" href={details.links.repo}> <img src={gh} alt="github logo" class="github-logo" />Repository</a>
+		<!-- <a class="repo-link" href={details.links.url}> <img src={gh} alt="github logo" class="github-logo" />Repository</a> -->
 		<Tags tags={details.tags} />
+		<div>
+			<span>
+				Depends On: <a href="#/" on:click={() => dispatch('clickDeps')}>
+					{Object.keys(details.dependsOn)?.length ?? 0}
+				</a>
+			</span>
+			|
+			<span>Compiler: {details.requirements.compiler}</span>
+		</div>
 	</div>
 </header>
 
 <style>
+	.license {
+		color: greenyellow;
+	}
 	.features {
 		margin-left: 1rem;
 	}
@@ -62,19 +72,5 @@
 	}
 	h1 {
 		margin: 0;
-	}
-	.repo-link {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--color-theme-4);
-		font-weight: 900;
-	}
-	.github-logo {
-		height: 1.5rem;
-		margin: 0;
-		/* https://codepen.io/sosuke/pen/Pjoqqp */
-		filter: invert(62%) sepia(12%) saturate(553%) hue-rotate(168deg) brightness(103%) contrast(86%);
-		/* filter: invert(76%) sepia(52%) saturate(2298%) hue-rotate(322deg) brightness(99%) contrast(92%); */
 	}
 </style>

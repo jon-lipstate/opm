@@ -1,24 +1,5 @@
 <script lang="ts">
 	export let details: App.PackageDetails;
-
-	const deps = [
-		{
-			name: "Yuki's ECS",
-			version: '1.2.3',
-			updated: '1/1/1901',
-			downloads: 100000,
-			tags: ['ecs', 'engine'],
-			kind: 'Curated Library'
-		},
-		{
-			name: 'pico editor',
-			version: '0.0.1',
-			updated: '2/2/2902',
-			downloads: 10,
-			tags: ['tui', 'text-editor'],
-			kind: 'demo'
-		}
-	];
 	// TODO: Scan all deps to get a Set of Licenses. Add some Rules on GPL and Missing to turn red?
 </script>
 

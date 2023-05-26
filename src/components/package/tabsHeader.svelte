@@ -26,6 +26,7 @@
 		margin: 0;
 		padding-left: 0;
 		margin-bottom: 1rem;
+		flex-direction: column;
 	}
 
 	li {
@@ -33,9 +34,14 @@
 		list-style-type: none;
 		font-size: 1.5rem;
 		cursor: pointer;
+		text-align: center;
 	}
-
 	.selected {
 		color: var(--color-theme-1);
+	}
+	@media (min-width: 550px) {
+		ul {
+			flex-direction: row;
+		}
 	}
 </style>

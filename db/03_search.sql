@@ -1,6 +1,6 @@
 DROP FUNCTION IF EXISTS public.search_packages CASCADE;
 DROP FUNCTION IF EXISTS public.search_packages_no_keyword CASCADE;
-CREATE OR REPLACE FUNCTION search_packages(_search TEXT, _limit INTEGER, _offset INTEGER)
+CREATE OR REPLACE FUNCTION search_packages(_search TEXT, _limit INTEGER DEFAULT 50, _offset INTEGER DEFAULT 0)
 RETURNS TABLE (
     id INTEGER,
     rank REAL
@@ -42,8 +42,9 @@ END; $$
 LANGUAGE plpgsql;
 
 
--- SELECT * FROM search_packages('http server async',999,0);
-CREATE OR REPLACE FUNCTION search_packages_no_keyword(_search TEXT, _limit INTEGER, _offset INTEGER)
+-- SELECT * FROM search_packages('http server async');
+-- _offset => 20 to specify out of order named items
+CREATE OR REPLACE FUNCTION search_packages_no_keyword(_search TEXT, _limit INTEGER DEFAULT 50, _offset INTEGER DEFAULT 0)
 RETURNS TABLE (
     id INTEGER,
     rank REAL

@@ -56,3 +56,18 @@ CALL create_new_package(
     ARRAY['sweat', 'pants'],
     ARRAY[]::INTEGER[] -- no dependencies
 );
+
+CALL create_new_package(
+    'i am a teapot', 
+    '415', 
+    'dont find me', 
+    'http://nothere', 
+    '99.99.99',
+    'GPL',
+    99999,
+    3, -- published_by
+    '1.0.1',
+    'checksum2',
+    ARRAY['no', 'pants'],
+    ARRAY[1,2]::INTEGER[] 
+);

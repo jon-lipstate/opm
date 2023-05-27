@@ -72,11 +72,10 @@ CREATE TABLE IF NOT EXISTS public.package_keywords (
 );
 
 CREATE TABLE IF NOT EXISTS public.package_dependencies (
-	id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     package_id INTEGER NOT NULL REFERENCES packages(id),
     version_id INTEGER NOT NULL REFERENCES versions(id),
-	optional BOOLEAN DEFAULT false,
-	UNIQUE(package_id, version_id, optional)
+    UNIQUE(package_id, version_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.stars (

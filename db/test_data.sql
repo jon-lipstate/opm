@@ -28,8 +28,8 @@ VALUES ('jon', 'token1', 'avatar1', 1, 'jon@email.com'),
 
 -- Insert 2 packages by user1
 CALL create_new_package(
-    'package1', 
-    'description1', 
+    'http server', 
+    'a cool http/1.1 server', 
     'readme1', 
     'https://repository1', 
     '1.0.0',
@@ -38,13 +38,13 @@ CALL create_new_package(
     1, -- published_by
     '1.0.1',
     'checksum1',
-    ARRAY['fancy', 'pants'],
+    ARRAY['fancy', 'pants'], -- keywords
     ARRAY[]::INTEGER[] -- no dependencies
 );
 
 CALL create_new_package(
-    'package2', 
-    'description2', 
+    'async runtime', 
+    'it does stuff', 
     'readme2', 
     'https://repository2', 
     '1.0.0',

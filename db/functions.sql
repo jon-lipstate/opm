@@ -1,5 +1,3 @@
-CREATE EXTENSION pldbgapi;
-
 DROP FUNCTION IF EXISTS public.insert_user CASCADE;
 DROP FUNCTION IF EXISTS public.insert_new_package CASCADE;
 DROP PROCEDURE IF EXISTS public.create_new_package CASCADE;

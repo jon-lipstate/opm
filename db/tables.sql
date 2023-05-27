@@ -17,10 +17,10 @@ CREATE TABLE IF NOT EXISTS public.users (
 	gh_login VARCHAR(255) NOT NULL,
     gh_access_token VARCHAR(255) NOT NULL,
 	gh_avatar TEXT,
-    gh_id INT NOT NULL,
-    gh_email VARCHAR(255) NOT NULL,
+    gh_id INT NOT NULL, -- not certain if i need?
+    gh_email VARCHAR(255) NOT NULL, -- not 100% sure i need this? make nullable, only need if publisher?
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+	last_login TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS public.packages (
@@ -30,10 +30,14 @@ CREATE TABLE IF NOT EXISTS public.packages (
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	description TEXT,
 	readme TEXT,
-	repository TEXT,
+	TSV tsvector,
+	repository TEXT, -- url or git, both?
 	archived BOOLEAN DEFAULT false,
 	owner INTEGER REFERENCES users(id)
 );
+UPDATE packages SET TSV = to_tsvector('english', name || ' ' || description);
+CREATE INDEX packages_tsv_idx ON packages USING gin(tsv);
+
 
 CREATE TABLE IF NOT EXISTS public.package_authors (
     package_id INTEGER NOT NULL REFERENCES packages(id),

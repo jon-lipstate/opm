@@ -62,23 +62,61 @@ BEGIN
 END;
 $$;
 
--- SELECT insert_version(1, '1.0.0', 'MIT', 500, 1, false, '1.23.0', 'abc123');
-CREATE OR REPLACE FUNCTION insert_version(
-    _package_id INTEGER, 
-    _version VARCHAR(255), 
-    _license VARCHAR(255),
+CREATE OR REPLACE FUNCTION insert_new_version(
+    _package_id INTEGER,
+    _version VARCHAR,
+    _license VARCHAR,
     _size_kb INTEGER,
     _published_by INTEGER,
-    _insecure BOOLEAN,
-    _odin_compiler VARCHAR(255),
+    _odin_compiler VARCHAR,
     _checksum CHAR(64)
-) 
-RETURNS VOID AS $$
+) RETURNS INTEGER AS $$
+DECLARE
+    _version_id INTEGER;
+    existing_count INTEGER;
 BEGIN
-    INSERT INTO public.versions (package_id, version, license, size_kb, published_by, insecure, odin_compiler, checksum)
-    VALUES (_package_id, _version, _license, _size_kb, _published_by, _insecure, _odin_compiler, _checksum);
+    -- Check if Same package/version exists
+    SELECT COUNT(*) INTO existing_count
+    FROM public.versions
+    WHERE version = _version AND package_id = _package_id;
+
+    IF existing_count > 0 THEN
+        RAISE EXCEPTION 'Same Version for this package detected';
+    END IF;
+
+    INSERT INTO versions(package_id, version, license, size_kb, published_by, insecure, odin_compiler, checksum)
+    VALUES (_package_id, _version, _license, _size_kb, _published_by, false, _odin_compiler, _checksum)
+    RETURNING id INTO _version_id;
+
+    RETURN _version_id;
 END;
 $$ LANGUAGE plpgsql;
+-----
+CREATE OR REPLACE FUNCTION insert_keywords(
+    _package_id INTEGER,
+    _keywords TEXT[]
+) RETURNS VOID AS $$
+DECLARE
+    _keyword_id INTEGER;
+    _keyword VARCHAR;
+BEGIN
+    -- Insert keywords and their relation to the package
+    FOREACH _keyword IN ARRAY _keywords
+    LOOP
+        INSERT INTO keywords(keyword) 
+        VALUES (_keyword) 
+        ON CONFLICT (keyword) DO NOTHING;
+        
+        SELECT id INTO _keyword_id FROM keywords WHERE keyword = _keyword;
+
+        INSERT INTO package_keywords(package_id, keyword_id)
+        VALUES (_package_id, _keyword_id)
+        ON CONFLICT (package_id, keyword_id) DO NOTHING;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
 
 --
 -- 
@@ -108,34 +146,13 @@ DECLARE
 BEGIN
     -- Call the function to insert a new package
     _package_id := insert_new_package(_name, _description, _readme, _repository, _published_by);
-    
-    
-    -- Insert into versions table
-        -- Check if Same package/version exists
-        SELECT COUNT(*) INTO existing_count
-        FROM public.versions
-        WHERE version = _version AND package_id = _package_id;
-        IF existing_count > 0 THEN
-            RAISE EXCEPTION 'Same Version for this package detected';
-        END IF;
 
-    INSERT INTO versions(package_id, version, license, size_kb, published_by, insecure, odin_compiler, checksum)
-    VALUES (_package_id, _version, _license, _size_kb, _published_by, false, _odin_compiler, _checksum)
-    RETURNING id INTO _version_id;
+    -- Insert into versions table
+    _version_id := insert_new_version(_package_id, _version, _license, _size_kb, _published_by, _odin_compiler, _checksum);
 
        -- Insert keywords and their relation to the package
-    FOREACH _keyword IN ARRAY _keywords
-    LOOP
-        INSERT INTO keywords(keyword) 
-        VALUES (_keyword) 
-        ON CONFLICT (keyword) DO NOTHING;
-        
-        SELECT id INTO _keyword_id FROM keywords WHERE keyword = _keyword;
+    PERFORM insert_keywords(_package_id, _keywords);
 
-        INSERT INTO package_keywords(package_id, keyword_id)
-        VALUES (_package_id, _keyword_id)
-        ON CONFLICT (package_id, keyword_id) DO NOTHING;
-    END LOOP;
 
     -- Insert dependencies of the package
     FOREACH _dependency IN ARRAY _dependencies

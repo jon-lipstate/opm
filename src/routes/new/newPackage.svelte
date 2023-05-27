@@ -52,9 +52,18 @@
 		}
 	}
 	let selLib: any;
+	async function submitPackageDetails(e) {
+		e.preventDefault();
+		try {
+			const response = await axios.post('/api/packages/new', details);
+			console.log(response.data);
+		} catch (error) {
+			console.error('Error submitting package details', error, details);
+		}
+	}
 </script>
 
-<form action="newPackage">
+<form on:submit={submitPackageDetails}>
 	<div class="my-1">
 		<Select
 			label={'Repo'}

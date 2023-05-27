@@ -32,7 +32,7 @@ declare global {
 			lastUpdated: string;
 			license: string;
 			kind: string; //"unstable"|"community"|"curated"|"demo",
-			size: string; // kb
+			size_kb: string; // kb
 			owners: { name: string; username: string }[];
 			// stats: { allTimeDownloads: number };
 		};

@@ -50,7 +50,7 @@ export function intoPackageDetails(modpkg: App.ModPkg, githubDescriptor: any, re
 	details.description = modpkg.description;
 	details.license = modpkg.license;
 	details.readme = readmeUrl;
-	details.size = githubDescriptor.size;
+	details.size_kb = githubDescriptor.size;
 	details.owners = [githubDescriptor.owner.login];
 	details.archived = githubDescriptor.archived;
 	details.links = { url: githubDescriptor.html_url };

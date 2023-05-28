@@ -2,18 +2,19 @@
 	import axios from 'axios';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { searchResults } from '$stores/search';
-
+	//
+	import Pagination from '$components/pagination.svelte';
 	import SearchResult from '$components/searchResult.svelte';
 	import SearchBar from '$components/searchBar.svelte';
 
-	let results = [];
-	searchResults.subscribe((value) => {
-		results = value;
-	});
-
 	$: query = $page.url.searchParams.get('query');
 	$: queryMsg = query ?? 'No query provided';
+	$: results = [] as App.SearchResult[];
+
+	$: offset = Number($page.url.searchParams.get('offset')) ?? 0;
+	$: count = results.length;
+	$: currentPage = Math.floor(offset / 100) + 1; // 100 results per page
+	$: totalPages = Math.ceil(count / 100);
 
 	onMount(async () => {
 		//TODO: persist the results instead to not hit the server with another query?
@@ -35,6 +36,9 @@
 	{#each results as pkg}
 		<SearchResult {pkg} />
 	{/each}
+	{#if totalPages > 1}
+		<Pagination bind:currentPage {totalPages} />
+	{/if}
 </section>
 
 <style>

@@ -8,7 +8,7 @@ declare global {
 		// interface PageData {}
 		// interface Platform {}
 
-		type PackageResult = {
+		type SearchResult = {
 			package_id: number;
 			name: string;
 			description: string;

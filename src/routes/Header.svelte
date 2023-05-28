@@ -1,8 +1,8 @@
 <script>
-  	import { page } from "$app/stores"
+	import { page } from '$app/stores';
 	import logo from '$lib/images/odin-logo.svg';
 	import GithubLogin from '$components/githubLogin.svelte';
-	import Menu from '$components/hamburgerMenu.svelte';
+	import Menu from '$components/menu.svelte';
 </script>
 
 <header>
@@ -16,15 +16,12 @@
 		<!-- Right Items -->
 		<div class="right-items">
 			{#if !$page.data.session}
-			<GithubLogin />
-
+				<GithubLogin />
 			{:else}
 				{#if $page.data.session.user?.image}
-					<span
-					style="background-image: url('{$page.data.session.user.image}')"
-					class="avatar"/>
+					<span style="background-image: url('{$page.data.session.user.image}')" class="avatar" />
 				{/if}
-				<Menu/>
+				<Menu />
 			{/if}
 			<!-- <a href="/login"> Login </a> -->
 		</div>

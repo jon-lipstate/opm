@@ -1,11 +1,12 @@
 DROP FUNCTION IF EXISTS public.search_packages CASCADE;
 DROP FUNCTION IF EXISTS public.search_packages_no_keyword CASCADE;
-DROP FUNCTION IF EXISTS public.get_package_details CASCADE;
-DROP FUNCTION IF EXISTS public.search_and_get_details CASCADE;
+DROP FUNCTION IF EXISTS public.get_package_results CASCADE;
+DROP FUNCTION IF EXISTS public.search_and_get_results CASCADE;
+DROP FUNCTION IF EXISTS public.browse_packages CASCADE;
+DROP TYPE IF EXISTS public.search_result CASCADE;
 ---
--- todo: split the `-` on names so they become two keywords
-CREATE OR REPLACE FUNCTION search_and_get_details(_search TEXT, _limit INTEGER DEFAULT 50, _offset INTEGER DEFAULT 0)
-RETURNS TABLE (
+---
+CREATE TYPE search_result AS (
     package_id INTEGER,
     name TEXT,
     description TEXT,
@@ -15,7 +16,30 @@ RETURNS TABLE (
     all_downloads BIGINT,
     stars BIGINT,
     keywords TEXT[]
-)
+);
+---
+CREATE OR REPLACE FUNCTION browse_packages(_limit INTEGER DEFAULT 100, _offset INTEGER DEFAULT 0)
+RETURNS SETOF search_result
+AS $$
+DECLARE
+    _package_ids INTEGER[];
+BEGIN
+    SELECT array_agg(id) INTO _package_ids
+    FROM (
+        SELECT id
+        FROM packages
+        ORDER BY name
+        LIMIT _limit OFFSET _offset
+    ) AS p;
+    
+    RETURN QUERY SELECT * FROM get_package_results(_package_ids);
+END;
+$$ 
+LANGUAGE plpgsql;
+---
+-- todo: split the `-` on names so they become two keywords
+CREATE OR REPLACE FUNCTION search_and_get_results(_search TEXT, _limit INTEGER DEFAULT 50, _offset INTEGER DEFAULT 0)
+RETURNS SETOF search_result
 AS $$
 DECLARE
     _package_ids INTEGER[];
@@ -24,35 +48,7 @@ BEGIN
     FROM search_packages(_search, _limit, _offset);
     
     RETURN QUERY 
-    SELECT 
-        p.id AS package_id,
-        p.name,
-        p.description,
-        v.version,
-        v.created_at AS last_updated,
-        v.downloads AS downloads,
-        sum(v_all.downloads) AS all_downloads,
-        count(distinct s.user_id) AS stars,
-        array_agg(distinct k.keyword) AS keywords
-    FROM 
-        packages AS p
-    JOIN 
-        package_keywords AS pk ON p.id = pk.package_id
-    JOIN 
-        keywords AS k ON pk.keyword_id = k.id
-    LEFT JOIN 
-        versions AS v ON p.id = v.package_id
-    LEFT JOIN 
-        versions AS v_all ON p.id = v_all.package_id
-    LEFT JOIN 
-        stars AS s ON p.id = s.package_id
-    WHERE 
-        p.id = ANY(_package_ids)
-    GROUP BY
-        p.id,
-        v.version,
-        v.created_at,
-        v.downloads;
+    SELECT * FROM get_package_results(_package_ids);
 END;
 $$ 
 LANGUAGE plpgsql;
@@ -131,19 +127,9 @@ LANGUAGE plpgsql;
 --------------------------------------------------------------------------------------------------------------------------
 -- Hydrate Search
 --------------------------------------------------------------------------------------------------------------------------
--- select * from public.get_package_details(ARRAY[1,2])
-CREATE OR REPLACE FUNCTION get_package_details(_package_ids INT[])
-RETURNS TABLE (
-    package_id INTEGER,
-    name TEXT,
-    description TEXT,
-    version TEXT,
-    last_updated TIMESTAMP,
-    downloads INTEGER,
-    all_downloads BIGINT,
-    stars BIGINT,
-    keywords TEXT[]
-)
+-- select * from public.get_package_results(ARRAY[1,2])
+CREATE OR REPLACE FUNCTION get_package_results(_package_ids INT[])
+RETURNS SETOF search_result
 AS $$
 BEGIN
     RETURN QUERY 
@@ -155,7 +141,7 @@ BEGIN
         v.created_at AS last_updated,
         v.downloads AS downloads,
         sum(v_all.downloads) AS all_downloads,
-        count(s.*) AS stars,
+        count(distinct s.user_id) AS stars,
         array_agg(distinct k.keyword) AS keywords
     FROM 
         packages AS p
@@ -175,15 +161,16 @@ BEGIN
         p.id,
         v.version,
         v.created_at,
-        v.downloads; -- TODO: if older version is updated, shows it, not the new one, dont think can happen?
-END; $$
+        v.downloads;
+END;
+$$ 
 LANGUAGE plpgsql;
 
 
 -----
 
 
--- TODO: on pagination do i pass the id's back to client and they ask for details?
+-- TODO: on pagination do i pass the id's back to client and they ask for results?
 CREATE OR REPLACE FUNCTION search_package_count(_search TEXT)
 RETURNS INTEGER 
 AS $$

@@ -1,20 +1,17 @@
-import { error, fail, json } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import sql from '$lib/database';
 
 export async function POST(event) {
 	//@ts-ignore
 	const body = await event.request.text();
-
-	const query = JSON.parse(body).query;
 	const offset = JSON.parse(body).offset ?? 0;
-	const limit = JSON.parse(body).offset ?? 25;
-
+	const limit = JSON.parse(body).limit ?? 100;
 	try {
-		const res = await sql`
-  			SELECT * FROM search_and_get_results(${query}, ${limit}, ${offset})
+		const count = await sql`SELECT COUNT(*) FROM packages;`;
+		const results = await sql`
+  			SELECT * FROM browse_packages(${limit}, ${offset})
   		`;
-
-		return json(res);
+		return json({ ...count[0], values: results });
 	} catch (err) {
 		console.error('SQL Search Error', err);
 		//@ts-ignore

@@ -1,10 +1,9 @@
 <script lang="ts">
-	import Tags from "$components/tags.svelte"
+	import Tags from '$components/tags.svelte';
 	import { goto } from '$app/navigation';
 
 	export let pkg: App.PackageResult;
 	let packageName = pkg.name.toLowerCase().replace(/\s/g, '-');
-
 </script>
 
 <div class="container">
@@ -17,7 +16,7 @@
 	<!-- <p><strong>Updated:</strong> {pkg.updated}</p> -->
 	<!-- <p><strong>Downloads:</strong> {pkg.downloads.toLocaleString()}</p> -->
 	<!-- <p>copy to clipboard</p> -->
-	<Tags tags={pkg.tags}/>
+	<Tags tags={pkg.keywords} />
 </div>
 
 <style>
@@ -26,5 +25,4 @@
 		padding: 10px;
 		margin: 10px 0;
 	}
-	
 </style>

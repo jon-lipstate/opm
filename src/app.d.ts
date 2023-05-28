@@ -9,12 +9,15 @@ declare global {
 		// interface Platform {}
 
 		type PackageResult = {
-			version: string;
+			package_id: number;
 			name: string;
-			kind: string;
-			updated: string;
+			description: string;
+			version: string;
+			last_updated: string;
 			downloads: number;
-			tags: string[];
+			all_downwloads: number;
+			stars: number;
+			keywords: string[];
 		};
 		type PackageDetails = {
 			name: string;

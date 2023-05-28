@@ -12,8 +12,8 @@
 		results = value;
 	});
 
-	let query = $page.url.searchParams.get('query');
-	const queryMsg = query ?? 'No query provided';
+	$: query = $page.url.searchParams.get('query');
+	$: queryMsg = query ?? 'No query provided';
 
 	onMount(async () => {
 		//TODO: persist the results instead to not hit the server with another query?

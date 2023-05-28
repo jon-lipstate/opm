@@ -14,18 +14,18 @@ DROP TABLE IF EXISTS public.reserved_names CASCADE;
 
 CREATE TABLE IF NOT EXISTS public.users (
 	id SERIAL PRIMARY KEY,
-	gh_login VARCHAR(255) NOT NULL,
-    gh_access_token VARCHAR(255) NOT NULL,
+	gh_login TEXT NOT NULL,
+    gh_access_token TEXT NOT NULL,
 	gh_avatar TEXT,
     gh_id INT NOT NULL, -- not certain if i need?
-    gh_email VARCHAR(255) NOT NULL, -- not 100% sure i need this? make nullable, only need if publisher?
+    gh_email TEXT NOT NULL, -- not 100% sure i need this? make nullable, only need if publisher?
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	last_login TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS public.packages (
     id SERIAL PRIMARY KEY,
-	name VARCHAR(255) NOT NULL,
+	name TEXT NOT NULL,
 	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	description TEXT,
@@ -49,20 +49,20 @@ CREATE TABLE IF NOT EXISTS public.package_authors (
 CREATE TABLE IF NOT EXISTS public.versions (
     id SERIAL PRIMARY KEY,
 	package_id INTEGER REFERENCES packages(id),
-	version VARCHAR(255) NOT NULL,
+	version TEXT NOT NULL,
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL,
-	license VARCHAR(255) NOT NULL,
+	license TEXT NOT NULL,
 	size_kb INTEGER,
 	published_by INTEGER REFERENCES users(id),
 	insecure BOOLEAN DEFAULT false, -- aka yank
-	odin_compiler VARCHAR(255) NOT NULL,
+	odin_compiler TEXT NOT NULL,
 	downloads INTEGER DEFAULT 0,
 	checksum CHAR(64) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS public.keywords (
     id SERIAL PRIMARY KEY,
-    keyword VARCHAR(255) NOT NULL UNIQUE
+    keyword TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS public.package_keywords (

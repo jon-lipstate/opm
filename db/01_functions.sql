@@ -4,11 +4,11 @@ DROP PROCEDURE IF EXISTS public.create_new_package CASCADE;
 
 -- CALL insert_user('gh_login_value', 'gh_access_token_value', 'gh_avatar_value', gh_id_value, 'gh_email_value');
 CREATE OR REPLACE PROCEDURE insert_user(
-    _gh_login VARCHAR,
-    _gh_access_token VARCHAR,
+    _gh_login TEXT,
+    _gh_access_token TEXT,
     _gh_avatar TEXT,
     _gh_id INT,
-    _gh_email VARCHAR
+    _gh_email TEXT
 )
 LANGUAGE plpgsql
 AS $$
@@ -32,7 +32,7 @@ $$;
 
 -- SELECT insert_package(' Name', ' Description', ' README', ' Repository', false);
 CREATE OR REPLACE FUNCTION insert_new_package(
-    _name VARCHAR, 
+    _name TEXT, 
     _description TEXT, 
     _readme TEXT, 
     _repository TEXT, 
@@ -62,11 +62,11 @@ $$;
 
 CREATE OR REPLACE FUNCTION insert_new_version(
     _package_id INTEGER,
-    _version VARCHAR,
-    _license VARCHAR,
+    _version TEXT,
+    _license TEXT,
     _size_kb INTEGER,
     _published_by INTEGER,
-    _odin_compiler VARCHAR,
+    _odin_compiler TEXT,
     _checksum CHAR(64)
 ) RETURNS INTEGER AS $$
 DECLARE
@@ -96,7 +96,7 @@ CREATE OR REPLACE FUNCTION insert_keywords(
 ) RETURNS VOID AS $$
 DECLARE
     _keyword_id INTEGER;
-    _keyword VARCHAR;
+    _keyword TEXT;
 BEGIN
     -- Insert keywords and their relation to the package
     FOREACH _keyword IN ARRAY _keywords
@@ -119,15 +119,15 @@ $$ LANGUAGE plpgsql;
 --
 -- 
 CREATE OR REPLACE PROCEDURE create_new_package(
-    _name VARCHAR, 
+    _name TEXT, 
     _description TEXT, 
     _readme TEXT, 
     _repository TEXT, 
-    _version VARCHAR,
-    _license VARCHAR,
+    _version TEXT,
+    _license TEXT,
     _size_kb INTEGER,
     _published_by INTEGER,
-    _odin_compiler VARCHAR,
+    _odin_compiler TEXT,
     _checksum CHAR(64),
     _keywords TEXT[],
     _dependencies INTEGER[] -- this is PKs of pk-dep table
@@ -138,7 +138,7 @@ DECLARE
     _package_id INTEGER;
     _version_id INTEGER;
     _keyword_id INTEGER;
-    _keyword VARCHAR;
+    _keyword TEXT;
 	_dependency INTEGER;
     existing_count INTEGER;
 BEGIN

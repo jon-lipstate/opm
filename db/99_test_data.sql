@@ -32,11 +32,11 @@ CALL create_new_package(
     'a cool http/1.1 server', 
     'readme1', 
     'https://repository1', 
-    '1.0.0',
+    '1.0.0', -- version
     'MIT',
     1024,
     1, -- published_by
-    '1.0.1',
+    'dev-2023-05', -- compiler
     'checksum1',
     ARRAY['fancy', 'pants'], -- keywords
     ARRAY[]::INTEGER[] -- no dependencies
@@ -47,13 +47,13 @@ CALL create_new_package(
     'it does stuff', 
     'readme2', 
     'https://repository2', 
-    '1.0.0',
+    '1.2.3',
     'BSD 3-Clause',
     2048,
     2, -- published_by
-    '1.0.1',
+    'dev-2023-05',
     'checksum2',
-    ARRAY['sweat', 'pants'],
+    ARRAY['sweat', 'pants'], -- keywords
     ARRAY[]::INTEGER[] -- no dependencies
 );
 
@@ -66,8 +66,8 @@ CALL create_new_package(
     'GPL',
     99999,
     3, -- published_by
-    '1.0.1',
+    'dev-2023-05',
     'checksum2',
-    ARRAY['no', 'pants'],
-    ARRAY[1,2]::INTEGER[] 
+    ARRAY['no', 'pants'], -- keywords
+    ARRAY[1,2]::INTEGER[]  -- deps
 );

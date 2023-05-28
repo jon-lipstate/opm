@@ -11,7 +11,9 @@ export function timeAgo(dateString): string {
 	const past = new Date(dateString);
 	//@ts-ignore
 	const diffMs = now - past; // difference in milliseconds
-
+	if (diffMs < 0) {
+		return `In the future`;
+	}
 	const seconds = diffMs / 1000;
 	const minutes = seconds / 60;
 	const hours = minutes / 60;

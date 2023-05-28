@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Tags from '$components/tags.svelte';
 	import { goto } from '$app/navigation';
+	import { timeAgo } from '$lib/utils';
 
 	export let pkg: App.PackageResult;
 	let packageName = pkg.name.toLowerCase().replace(/\s/g, '-');
@@ -13,8 +14,9 @@
 		</a>
 	</h2>
 	<!-- <p><strong>Kind:</strong> {pkg.kind}</p> -->
-	<!-- <p><strong>Updated:</strong> {pkg.updated}</p> -->
-	<!-- <p><strong>Downloads:</strong> {pkg.downloads.toLocaleString()}</p> -->
+	<span><strong>Updated:</strong>{timeAgo(new Date(pkg.last_updated))}</span>
+	<p><strong>Downloads:</strong> {pkg.downloads ?? 0} (all versions: {pkg.all_downloads ?? 0})</p>
+	<p><strong>Stars:</strong> {pkg.stars ?? 0}</p>
 	<!-- <p>copy to clipboard</p> -->
 	<Tags tags={pkg.keywords} />
 </div>

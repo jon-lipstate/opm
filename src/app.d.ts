@@ -15,7 +15,7 @@ declare global {
 			version: string;
 			last_updated: string;
 			downloads: number;
-			all_downwloads: number;
+			all_downloads: number;
 			stars: number;
 			keywords: string[];
 		};

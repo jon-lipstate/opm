@@ -3,7 +3,7 @@ DROP FUNCTION IF EXISTS public.search_packages_no_keyword CASCADE;
 DROP FUNCTION IF EXISTS public.get_package_details CASCADE;
 DROP FUNCTION IF EXISTS public.search_and_get_details CASCADE;
 ---
-
+-- todo: split the `-` on names so they become two keywords
 CREATE OR REPLACE FUNCTION search_and_get_details(_search TEXT, _limit INTEGER DEFAULT 50, _offset INTEGER DEFAULT 0)
 RETURNS TABLE (
     package_id INTEGER,
@@ -32,7 +32,7 @@ BEGIN
         v.created_at AS last_updated,
         v.downloads AS downloads,
         sum(v_all.downloads) AS all_downloads,
-        count(s.*) AS stars,
+        count(distinct s.user_id) AS stars,
         array_agg(distinct k.keyword) AS keywords
     FROM 
         packages AS p

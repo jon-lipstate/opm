@@ -13,6 +13,7 @@ export async function POST(event) {
 		const res = await sql`
   			SELECT * FROM search_and_get_details(${query}, ${limit}, ${offset})
   		`;
+
 		return json(res);
 	} catch (err) {
 		console.error('SQL Search Error', err);

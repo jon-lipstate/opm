@@ -55,3 +55,7 @@ export function generateSlug(str: string): string {
 		.replace(/^-+/, '') //  leading hyphens
 		.replace(/-+$/, ''); //  trailing hyphens
 }
+
+export function intoPackageDetails() {
+	console.warn('DEPRECATED');
+}

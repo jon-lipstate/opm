@@ -1,4 +1,4 @@
-import { error, fail, json } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import sql from '$lib/database';
 
 export async function POST(event) {
@@ -13,7 +13,6 @@ export async function POST(event) {
 		const res = await sql`
   			SELECT * FROM search_and_get_results(${query}, ${limit}, ${offset})
   		`;
-
 		return json(res);
 	} catch (err) {
 		console.error('SQL Search Error', err);

@@ -14,7 +14,7 @@
 		</a>
 	</h2>
 	<span><strong>Updated:</strong>{timeAgo(new Date(pkg.last_updated))}</span>
-	<p><strong>Downloads:</strong> {pkg.downloads ?? 0} (all versions: {pkg.all_downloads ?? 0})</p>
+	<p><strong>Downloads:</strong> {pkg.downloads ?? 0}</p>
 	<p><strong>Stars:</strong> {pkg.stars ?? 0}</p>
 	<!-- <p>copy to clipboard</p> -->
 	<Tags tags={pkg.keywords} />

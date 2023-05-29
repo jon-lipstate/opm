@@ -7,19 +7,18 @@
 	import Signatures from '$components/package/signatures.svelte';
 	import Dependencies from '$components/package/dependencies.svelte';
 	import VersionRow from '$components/package/versionRow.svelte';
-	import axios from 'axios';
 
 	export let details: App.PackageDetails;
-	let readmeData;
+	let readmeData = 'no readme available';
 	let selectedTab: number = 0;
 	function handleTabSelect(event: CustomEvent) {
 		selectedTab = event.detail;
 	}
 
-	onMount(async () => {
-		const readmeRes = await axios.get(details.readme);
-		readmeData = readmeRes.data;
-	});
+	// onMount(async () => {
+	// 	const readmeRes = await axios.get(details.readme);
+	// 	readmeData = readmeRes.data;
+	// });
 </script>
 
 <svelte:head>

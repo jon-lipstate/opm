@@ -11,7 +11,7 @@
 			$searchResults = response.data;
 			goto(`/search?query=${encodeURIComponent(query)}`);
 		} catch (error) {
-			console.error('Error:', error);
+			console.error('handleSearch Error:', error);
 		}
 	}
 

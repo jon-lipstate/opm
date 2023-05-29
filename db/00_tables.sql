@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public.users (
 CREATE TABLE IF NOT EXISTS public.packages (
     id SERIAL PRIMARY KEY,
 	name TEXT NOT NULL,
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- internal use only i think?
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	description TEXT,
 	readme TEXT,
@@ -71,12 +71,16 @@ CREATE TABLE IF NOT EXISTS public.package_keywords (
     PRIMARY KEY(package_id, keyword_id)
 );
 
-CREATE TABLE IF NOT EXISTS public.package_dependencies (
+CREATE TABLE package_dependencies (
     id SERIAL PRIMARY KEY,
-    package_id INTEGER NOT NULL REFERENCES packages(id),
-    version_id INTEGER NOT NULL REFERENCES versions(id),
-    UNIQUE(package_id, version_id)
+    package_id INTEGER REFERENCES packages(id),
+    version_id INTEGER REFERENCES versions(id),
+    dependency_package_id INTEGER REFERENCES packages(id),
+    dependency_version_id INTEGER REFERENCES versions(id),
+	-- dependency_type TEXT -- e.g., 'dev', 'prod', etc.
+    UNIQUE(package_id, version_id, dependency_package_id, dependency_version_id)
 );
+
 
 CREATE TABLE IF NOT EXISTS public.stars (
     user_id INTEGER NOT NULL REFERENCES users(id),

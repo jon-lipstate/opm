@@ -20,20 +20,24 @@ export const handle = SvelteKitAuth({
 		async jwt({ token, account }) {
 			if (account) {
 				// TODO: why do i need to do this here?? resolve this api better
-				let user = await axios.get(`https://api.github.com/user`, {
-					headers: {
-						Authorization: `token ${account.access_token}`
-					}
-				});
-				// Save the access token and refresh token in the JWT on the initial login
-				const augmentedToken = {
-					...token,
-					login: user.data.login,
-					access_token: account.access_token
-				};
-				delete augmentedToken.name;
-				delete augmentedToken.sub; // not sure what this is?
-				return augmentedToken;
+				try {
+					let user = await axios.get(`https://api.github.com/user`, {
+						headers: {
+							Authorization: `token ${account.access_token}`
+						}
+					});
+					// Save the access token and refresh token in the JWT on the initial login
+					const augmentedToken = {
+						...token,
+						login: user.data.login,
+						access_token: account.access_token
+					};
+					delete augmentedToken.name;
+					delete augmentedToken.sub; // not sure what this is?
+					return augmentedToken;
+				} catch (e) {
+					console.error('USER FAILED TO AUTHENTICATE IN JWT');
+				}
 			}
 			return token;
 		},

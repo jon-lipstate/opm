@@ -1,14 +1,12 @@
 <script lang="ts">
-	import axios from 'axios';
-	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import SearchResult from '$components/searchResult.svelte';
 	import Pagination from '$components/pagination.svelte';
 	import { goto } from '$app/navigation';
 
 	$: offset = Number($page.url.searchParams.get('offset')) ?? 0;
-	$: results = [] as App.SearchResult[];
-	$: count = results.length;
+	$: results = $page.data.results.values as App.SearchResult[];
+	$: count = $page.data.results.count;
 	$: currentPage = Math.floor(offset / 100) + 1; // 100 results per page
 	$: totalPages = Math.ceil(count / 100);
 	$: {
@@ -21,10 +19,6 @@
 			}
 		}
 	}
-	onMount(async () => {
-		const response = await axios.post(`api/browse`, { offset });
-		results = response.data.values;
-	});
 </script>
 
 <svelte:head>

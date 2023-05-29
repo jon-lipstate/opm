@@ -58,14 +58,14 @@ CALL create_new_package(
 );
 
 CALL create_new_package(
-    'i am a teapot', 
+    'i am a tthnteapot', 
     '415', 
     'dont find me', 
     'http://nothere', 
     '99.99.99',
     'GPL',
     99999,
-    3, -- published_by
+    2, -- published_by
     'dev-2023-05',
     'checksum2',
     ARRAY['no', 'pants'], -- keywords

@@ -36,6 +36,16 @@ export function timeAgo(dateString): string {
 		return `${Math.round(years)} years ago`;
 	}
 }
+export function generateSlug(str: string): string {
+	return str
+		.toLowerCase() // convert to lower case
+		.replace(/\s+/g, '-') // replace spaces with hyphens
+		.replace(/[^\w\-]+/g, '') // non-word [a-z0-9_], non-hyphen characters
+		.replace(/\-\-+/g, '-') // replace multiple hyphens with a single hyphen
+		.replace(/^-+/, '') //  leading hyphens
+		.replace(/-+$/, ''); //  trailing hyphens
+}
+
 export function intoPackageDetails(modpkg: App.ModPkg, githubDescriptor: any, readmeUrl: string): App.PackageDetails {
 	let details: Partial<App.PackageDetails> = {
 		requirements: { compiler: '' },

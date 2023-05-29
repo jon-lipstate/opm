@@ -2,7 +2,6 @@ import { json } from '@sveltejs/kit';
 
 export async function POST(event) {
 	const body = JSON.parse(await event.request.text());
-	console.warn(body);
 
 	return json(details);
 }

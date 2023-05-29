@@ -12,8 +12,7 @@ CREATE TYPE search_result AS (
     description TEXT,
     version TEXT,
     last_updated TIMESTAMP,
-    downloads INTEGER,
-    all_downloads BIGINT,
+    downloads BIGINT,
     stars BIGINT,
     keywords TEXT[]
 );
@@ -139,8 +138,7 @@ BEGIN
         p.description,
         v.version,
         v.created_at AS last_updated,
-        v.downloads AS downloads,
-        sum(v_all.downloads) AS all_downloads,
+        (SELECT SUM(downloads) FROM versions WHERE package_id = p.id) AS all_downloads,
         count(distinct s.user_id) AS stars,
         array_agg(distinct k.keyword) AS keywords
     FROM 
@@ -149,10 +147,8 @@ BEGIN
         package_keywords AS pk ON p.id = pk.package_id
     JOIN 
         keywords AS k ON pk.keyword_id = k.id
-    LEFT JOIN 
-        versions AS v ON p.id = v.package_id
-    LEFT JOIN 
-        versions AS v_all ON p.id = v_all.package_id
+    LEFT JOIN -- constrain to newest version id (serial)
+        versions AS v ON p.id = v.package_id AND v.id = (SELECT MAX(id) FROM versions WHERE package_id = p.id)
     LEFT JOIN 
         stars AS s ON p.id = s.package_id
     WHERE 
@@ -160,11 +156,11 @@ BEGIN
     GROUP BY
         p.id,
         v.version,
-        v.created_at,
-        v.downloads;
+        v.created_at;
 END;
 $$ 
 LANGUAGE plpgsql;
+
 
 
 -----

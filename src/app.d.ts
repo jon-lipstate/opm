@@ -14,30 +14,49 @@ declare global {
 			description: string;
 			version: string;
 			last_updated: string;
-			downloads: number;
-			all_downloads: number;
+			downloads: number; // all time downloads
 			stars: number;
 			keywords: string[];
 		};
+
+		//select * from get_all_dependency_licenses(4);
+		//"license"	"packages"
+		//"BSD 3-Clause"	"{""async runtime""}"
+		//"MIT"	"{""http server""}"
+
+		//select * from get_dependencies_flat(4)
+		//"packagename"	"version"	"license"	"lastupdated"	"archived"	"insecure"
+		//"http server"	"1.0.0"	"MIT"	"2023-05-28 22:59:16.899138"	false	true
+		//"async runtime"	"1.2.3"	"BSD 3-Clause"	"2023-05-28 22:59:16.899138"	false	false
+		// select * from get_package_details(1);
+		// "name"	"description"	"archived"	"keywords"	"stars"	"repository"	"readme"	"owner"	"authors"
+		// "http server"	"a cool http/1.1 server"	false	"{fancy,pants}"	0	"https://repository1"	"readme1"	"jon"	"{}"
+
 		type PackageDetails = {
 			name: string;
-			version: string;
 			description: string;
 			archived: boolean;
-			tags: string[];
+			keywords: string[];
+			stars: number;
+			repository: string; // http repo url
 			readme: string; // markdown, html formatted
-			versions: string[];
-			funding: Record<string, string>; // github patreon etc?
-			dependsOn: NamedVersion;
-			// usedBy: string[];
-			requirements: { compiler: string };
-			links: Record<string, string>;
-			lastUpdated: string;
+			versions: VersionDetails[]; // appended by seperate query
+			owner: string;
+			authors: string[];
+			usedBy: string[]; // appended by seperate query
+		};
+		//select * from get_version_details(4);
+		//"version"	"isinsecure"	"createdat"	"size_kb"	"dependencycount"	"compiler"	"license"	"insecuredependency"
+		//"99.99.99"	false	"2023-05-28 23:02:46.186889"	99999	2	"dev-2023-05"	"GPL"	true
+		type VersionDetails = {
+			version: string;
+			isInsecure: boolean;
+			createdAt: string;
+			size_kb: number;
+			depCount: number;
+			compiler: string; // eg DEV-05-23
 			license: string;
-			kind: string; //"unstable"|"community"|"curated"|"demo",
-			size_kb: string; // kb
-			owners: { name: string; username: string }[];
-			// stats: { allTimeDownloads: number };
+			hasInsecureDep: boolean;
 		};
 		type ModPkg = {
 			name: string;

@@ -155,9 +155,9 @@ BEGIN
     -- Insert dependencies of the package
     FOREACH _dependency IN ARRAY _dependencies
     LOOP
-        INSERT INTO package_dependencies(package_id, version_id)
-        VALUES (_package_id, _dependency)
-        ON CONFLICT (package_id, version_id) DO NOTHING;
+        INSERT INTO package_dependencies(package_id, version_id, dependency_package_id, dependency_version_id)
+        VALUES (_package_id, _version_id, _dependency, _dependency)
+        ON CONFLICT (package_id, version_id, dependency_package_id, dependency_version_id) DO NOTHING;
     END LOOP;
     
 END;

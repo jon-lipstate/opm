@@ -1,43 +1,74 @@
 <script lang="ts">
-	export let details: App.PackageDetails;
-	// TODO: Scan all deps to get a Set of Licenses. Add some Rules on GPL and Missing to turn red?
+	import { timeAgo } from '$lib/utils';
+	import type { FlatDependencies, LicenseSummary } from 'src/routes/api/details/dependencies/+server';
+	import { onMount } from 'svelte';
+	//
+	export let versionId;
+	let licenses: LicenseSummary[] = [];
+	let flat: FlatDependencies[] = [];
+	let error;
+	//
+	onMount(async () => {
+		const response = await fetch(`/api/details/dependencies`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ versionId })
+		});
+		if (response.ok) {
+			const pageData = await response.json();
+			flat = pageData.flat;
+			licenses = pageData.licenses;
+		} else {
+			error = (await response.json()).message;
+		}
+	});
 </script>
 
 <section>
 	<!-- License Summary -->
 	<div>
-		<h3>Licenses</h3>
-		<span style="color:red">todo: Traverse the graph, summarize licenses as a Set</span>
+		<h2>Licenses</h2>
 		<ul>
-			<li>
-				<span>MIT : Something, Another</span>
-			</li>
-			<li>
-				<span>GPL : SOME_THING_ELSE</span>
-			</li>
+			{#each licenses as lic, i (lic)}
+				<li>
+					<span class="license">{lic.license} </span>
+					<span class="primary">:: </span>
+					<span> {lic.packages.join(', ')}</span>
+				</li>
+			{/each}
 		</ul>
 	</div>
 	<!-- Display Table -->
 	<div>
-		<h3>Dependency Summary</h3>
+		<h2>Dependency Summary</h2>
+		<!-- <pre>{JSON.stringify(flat, null, 2)}</pre> -->
+
 		<table>
 			<thead>
 				<tr>
 					<th>Package</th>
 					<th>Version</th>
 					<th>License</th>
-					<th>Depends On</th>
-					<th>Active</th>
+					<th>Updated</th>
+					<th>Security</th>
 				</tr>
 			</thead>
 			<tbody>
-				{#each Object.keys(details.dependsOn) as dep, i (i)}
+				{#each flat as dep, i (i)}
 					<tr>
-						<td>{dep}</td>
-						<td>{details.dependsOn[dep]} (@todo)</td>
-						<td>??MIT</td>
-						<td><a href="/{dep}/{details.dependsOn[dep]}">#?</a></td>
-						<td>(x days ago) | archived</td>
+						<td><a href="/packages/{dep.owner}/{dep.slug}">{dep.package_name}</a></td>
+						<td>{dep.version}</td>
+						<td>{dep.license}</td>
+						{#if dep.archived}
+							<td class="archived">ARCHIVED</td>
+						{:else}
+							<td>{timeAgo(dep.last_updated)}</td>
+						{/if}
+						{#if dep.insecure}
+							<td class="insecure-warning">INSECURE</td>
+						{:else}
+							<td />
+						{/if}
 					</tr>
 				{/each}
 			</tbody>
@@ -46,12 +77,34 @@
 </section>
 
 <style>
-	h3 {
+	.primary {
 		color: var(--color-theme-1);
+	}
+	.license {
+		color: greenyellow;
+	}
+	.archived {
+		color: orange;
+		font-weight: 900;
+	}
+	.insecure-warning {
+		color: red;
+		font-weight: 900;
+	}
+	h2 {
+		/* color: var(--color-theme-1); */
 		margin-bottom: 0.2rem;
 	}
 	table {
 		width: 100%;
 		text-align: left;
+	}
+	ul {
+		margin: 0;
+		padding: 0;
+	}
+	li {
+		margin: 0;
+		list-style-type: none;
 	}
 </style>

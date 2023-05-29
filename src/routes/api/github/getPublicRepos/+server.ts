@@ -1,4 +1,4 @@
-import { json } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import axios from 'axios';
 import { getAuth } from '../../auth.js';
 
@@ -20,7 +20,6 @@ export async function GET(event) {
 		return json(repos);
 	} catch (e) {
 		console.error(`>>> getPublicGists: "${session}"`);
-		//@ts-ignore
-		return fail(503, `api: getPublicRepos, err: ${e}`);
+		throw error(503, `api: getPublicRepos, err: ${e}`);
 	}
 }

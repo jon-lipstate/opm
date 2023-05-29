@@ -25,7 +25,10 @@ CREATE TABLE IF NOT EXISTS public.users (
 
 CREATE TABLE IF NOT EXISTS public.packages (
     id SERIAL PRIMARY KEY,
+	owner INTEGER REFERENCES users(id),
 	name TEXT NOT NULL,
+	slug TEXT NOT NULL,
+	readme_rendered_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- internal use only i think?
 	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- internal use only i think?
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	description TEXT,
@@ -33,7 +36,7 @@ CREATE TABLE IF NOT EXISTS public.packages (
 	TSV tsvector,
 	repository TEXT, -- url or git, both?
 	archived BOOLEAN DEFAULT false,
-	owner INTEGER REFERENCES users(id)
+    UNIQUE(name,owner)
 );
 UPDATE packages SET TSV = to_tsvector('english', name || ' ' || description);
 CREATE INDEX packages_tsv_idx ON packages USING gin(tsv);
@@ -55,7 +58,7 @@ CREATE TABLE IF NOT EXISTS public.versions (
 	size_kb INTEGER,
 	published_by INTEGER REFERENCES users(id),
 	insecure BOOLEAN DEFAULT false, -- aka yank
-	odin_compiler TEXT NOT NULL,
+	compiler TEXT NOT NULL,
 	downloads INTEGER DEFAULT 0,
 	checksum CHAR(64) NOT NULL
 );

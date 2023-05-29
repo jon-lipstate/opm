@@ -29,6 +29,7 @@ VALUES ('jon', 'token1', 'avatar1', 1, 'jon@email.com'),
 -- Insert 2 packages by user1
 CALL create_new_package(
     'http server', 
+    'http-server', 
     'a cool http/1.1 server', 
     'readme1', 
     'https://repository1', 
@@ -44,6 +45,7 @@ CALL create_new_package(
 
 CALL create_new_package(
     'async runtime', 
+    'async-runtime', 
     'it does stuff', 
     'readme2', 
     'https://repository2', 
@@ -58,11 +60,12 @@ CALL create_new_package(
 );
 
 CALL create_new_package(
-    'i am a tthnteapot', 
+    'i am a teapot', 
+    'i-am-a-teapot', 
     '415', 
     'dont find me', 
     'http://nothere', 
-    '99.99.99',
+    '99.1.99',
     'GPL',
     99999,
     2, -- published_by

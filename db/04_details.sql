@@ -2,7 +2,8 @@ DROP FUNCTION IF EXISTS public.get_all_dependencies CASCADE;
 DROP FUNCTION IF EXISTS public.get_insecure_versions CASCADE;
 DROP FUNCTION IF EXISTS public.get_all_dependency_licenses CASCADE;
 DROP FUNCTION IF EXISTS public.get_version_details CASCADE;
-DROP TYPE IF EXISTS public.dependency CASCADE;
+DROP FUNCTION IF EXISTS public.get_dependencies_flat CASCADE;
+DROP FUNCTION IF EXISTS public.get_package_details CASCADE;
 
 --------
 CREATE OR REPLACE FUNCTION get_all_dependencies(_version_id INTEGER)
@@ -53,7 +54,8 @@ BEGIN
         SELECT
             v.package_id,
             v.id AS version_id,
-            (get_all_dependencies(v.id)).*
+            (get_all_dependencies(v.id)).package_id AS dependency_package_id,
+            (get_all_dependencies(v.id)).version_id AS dependency_version_id
         FROM 
             versions AS v
     )
@@ -76,6 +78,7 @@ BEGIN
         v.insecure = true;
 END;
 $$;
+
 -----------------------------------------------------
 CREATE OR REPLACE FUNCTION get_all_dependency_licenses(version_id INTEGER)
 RETURNS TABLE(
@@ -108,10 +111,12 @@ $$;
 
 CREATE OR REPLACE FUNCTION get_dependencies_flat(_version_id INTEGER)
 RETURNS TABLE(
-    packageName TEXT,
+    owner TEXT,
+    slug TEXT,
+    package_name TEXT,
     version TEXT,
     license TEXT,
-    lastUpdated TIMESTAMP,
+    last_updated TIMESTAMP,
     archived BOOLEAN,
     insecure BOOLEAN
 )
@@ -131,51 +136,58 @@ BEGIN
         SELECT * FROM get_all_dependencies(_version_id)
     )
     SELECT 
-        p.name AS packageName,
+        u.gh_login AS owner,
+        p.slug,
+        p.name AS package_name,
         v.version,
         v.license,
-        v.created_at AS lastUpdated,
+        v.created_at AS last_updated,
         p.archived,
         v.insecure
     FROM 
         packages p
     INNER JOIN
         versions v ON p.id = v.package_id
+    INNER JOIN
+        users u ON p.owner = u.id
     WHERE 
         v.id != _version_id AND v.id = ANY(SELECT version_id FROM all_dependencies);
 END;
 $$;
+
 -------------------------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION get_version_details(_package_id INTEGER)
 RETURNS TABLE(
+    id INTEGER,
     version TEXT,
-    isInsecure BOOLEAN,
+    insecure BOOLEAN,
     createdAt TIMESTAMP,
     size_kb INTEGER,
-    dependencyCount BIGINT,
+    dependency_count BIGINT,
     compiler TEXT,
     license TEXT,
-    insecureDependency BOOLEAN
+    has_insecure_dependency BOOLEAN
 )
 AS $$
 BEGIN
     RETURN QUERY
     SELECT 
+        v.id,
         v.version,
         v.insecure,
         v.created_at,
         v.size_kb,
         (SELECT COUNT(*) 
          FROM package_dependencies pd
-         WHERE v.id = pd.version_id) AS dependencyCount,
+         WHERE v.id = pd.version_id) AS dependency_count,
         v.compiler,
         v.license,
         EXISTS(
             SELECT 1
             FROM get_insecure_versions() giv
             WHERE giv.package_id = v.package_id AND giv.version_id = v.id
-        ) AS insecureDependency
+        ) AS has_insecure_dependency
     FROM 
         versions AS v
     WHERE 
@@ -187,6 +199,7 @@ LANGUAGE plpgsql;
 -----------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_package_details(_package_id INTEGER)
 RETURNS TABLE(
+    id INTEGER,
     name TEXT,
     description TEXT,
     archived BOOLEAN,
@@ -201,6 +214,7 @@ AS $$
 BEGIN
     RETURN QUERY
     SELECT 
+        p.id,
         p.name,
         p.description,
         p.archived,

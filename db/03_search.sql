@@ -4,16 +4,33 @@ DROP FUNCTION IF EXISTS public.get_package_results CASCADE;
 DROP FUNCTION IF EXISTS public.search_and_get_results CASCADE;
 DROP FUNCTION IF EXISTS public.browse_packages CASCADE;
 DROP TYPE IF EXISTS public.search_result CASCADE;
+DROP TYPE IF EXISTS public.get_package_id_by_slug_and_username CASCADE;
 ---
+CREATE OR REPLACE FUNCTION get_package_id_by_slug_and_username(_slug TEXT, _username TEXT)
+RETURNS INTEGER AS $$
+DECLARE
+    _package_id INTEGER;
+BEGIN
+    SELECT p.id 
+    INTO _package_id
+    FROM packages p
+    INNER JOIN users u ON p.owner = u.id
+    WHERE p.slug = _slug AND u.gh_login = _username;
+
+    RETURN _package_id;
+END;
+$$ LANGUAGE plpgsql;
+
 ---
 CREATE TYPE search_result AS (
     package_id INTEGER,
+    owner TEXT,
     name TEXT,
+    slug TEXT,
     description TEXT,
     version TEXT,
     last_updated TIMESTAMP,
     downloads BIGINT,
-    stars BIGINT,
     keywords TEXT[]
 );
 ---
@@ -134,33 +151,34 @@ BEGIN
     RETURN QUERY 
     SELECT 
         p.id AS package_id,
+        u.gh_login AS owner,
         p.name,
+        p.slug,
         p.description,
         v.version,
         v.created_at AS last_updated,
-        (SELECT SUM(downloads) FROM versions WHERE package_id = p.id) AS all_downloads,
-        count(distinct s.user_id) AS stars,
+        (SELECT SUM(downloads) FROM versions WHERE package_id = p.id) AS downloads,
         array_agg(distinct k.keyword) AS keywords
     FROM 
         packages AS p
+    INNER JOIN
+        users AS u ON p.owner = u.id
     JOIN 
         package_keywords AS pk ON p.id = pk.package_id
     JOIN 
         keywords AS k ON pk.keyword_id = k.id
     LEFT JOIN -- constrain to newest version id (serial)
         versions AS v ON p.id = v.package_id AND v.id = (SELECT MAX(id) FROM versions WHERE package_id = p.id)
-    LEFT JOIN 
-        stars AS s ON p.id = s.package_id
     WHERE 
         p.id = ANY(_package_ids)
     GROUP BY
         p.id,
+        u.gh_login,
         v.version,
         v.created_at;
 END;
 $$ 
 LANGUAGE plpgsql;
-
 
 
 -----

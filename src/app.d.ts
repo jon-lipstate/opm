@@ -11,6 +11,7 @@ declare global {
 		type SearchResult = {
 			package_id: number;
 			name: string;
+			owner: string;
 			description: string;
 			version: string;
 			last_updated: string;
@@ -33,6 +34,7 @@ declare global {
 		// "http server"	"a cool http/1.1 server"	false	"{fancy,pants}"	0	"https://repository1"	"readme1"	"jon"	"{}"
 
 		type PackageDetails = {
+			id: number;
 			name: string;
 			description: string;
 			archived: boolean;
@@ -40,23 +42,24 @@ declare global {
 			stars: number;
 			repository: string; // http repo url
 			readme: string; // markdown, html formatted
-			versions: VersionDetails[]; // appended by seperate query
 			owner: string;
 			authors: string[];
-			usedBy: string[]; // appended by seperate query
+			versions: VersionDetails[]; // appended by seperate query
+			usedBy: string[]?; // appended by seperate query
 		};
 		//select * from get_version_details(4);
 		//"version"	"isinsecure"	"createdat"	"size_kb"	"dependencycount"	"compiler"	"license"	"insecuredependency"
 		//"99.99.99"	false	"2023-05-28 23:02:46.186889"	99999	2	"dev-2023-05"	"GPL"	true
 		type VersionDetails = {
+			id: number;
 			version: string;
-			isInsecure: boolean;
-			createdAt: string;
+			insecure: boolean;
+			createdat: string;
 			size_kb: number;
-			depCount: number;
+			dependency_count: number;
 			compiler: string; // eg DEV-05-23
 			license: string;
-			hasInsecureDep: boolean;
+			has_insecure_dependency: boolean;
 		};
 		type ModPkg = {
 			name: string;

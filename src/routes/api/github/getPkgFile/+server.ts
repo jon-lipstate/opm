@@ -1,4 +1,4 @@
-import { json } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import axios from 'axios';
 import { getAuth } from '../../auth.js';
 
@@ -10,7 +10,7 @@ export async function POST(event) {
 		const pkgFile = contentsRes.data.find((x) => (x.name as string).includes('.pkg'));
 		if (!pkgFile) {
 			console.error(`>>> FAILED TO FIND PKG: "${login}/${body.name}"`);
-			return json({ error: 'mod.pkg file is missing.' }, { status: 404 });
+			throw error(404, 'mod.pkg file is missing.');
 		}
 		const file = await axios.get(pkgFile.download_url);
 		try {
@@ -19,12 +19,12 @@ export async function POST(event) {
 			const _js = JSON.parse(str);
 		} catch (e) {
 			console.error(`>>> getPkgFile - malformed pkg file: "${login}/${body.name}"`);
-			return json({ error: `malformed pkg file: ${e}` }, { status: 400 });
+			throw error(400, `malformed pkg file: ${e}`);
 		}
 		return json(file.data);
 	} catch (e) {
 		console.error(`>>> getPkgFile: "${login}/${body.name}"`);
-		return json({ error: `api: getPkgFile, err: ${e}` }, { status: 503 });
+		throw error(503, `api: getPkgFile, err: ${e}`);
 	}
 }
 

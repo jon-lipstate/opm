@@ -4,6 +4,7 @@ import { json } from '@sveltejs/kit';
 export async function POST(event) {
 	const details = JSON.parse(await event.request.text());
 	return json({ msg: 'Not Implemented' }, { status: 500 });
+	// TODO: NAME MUST BE SLUGGABLE IMPLICITLY
 
 	// await make_package_table();
 

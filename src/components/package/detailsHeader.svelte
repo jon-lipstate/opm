@@ -1,36 +1,46 @@
 <script lang="ts">
 	import Tags from '$components/tags.svelte';
-	import gh from '$lib/images/github.svg';
 	import leaf from '$lib/icons/leaf.svg';
 	import yellowSand from '$lib/icons/yellow-sand.svg';
 	// import redSand from '$lib/icons/red-sand.svg';
-	import { timeAgo } from '$lib/utils';
+	import { isStale, timeAgo } from '$lib/utils';
 	import { createEventDispatcher } from 'svelte';
 	const dispatch = createEventDispatcher();
+	//
 	export let details: App.PackageDetails;
+	export let versionIndex = 0;
+
+	const version = details.versions[versionIndex];
 </script>
 
 <header class="details-header">
 	<div class="row">
 		<h1>
-			<a href={details.links.url}>{details.name}</a>
+			<a href={details.repository}>{details.name}</a>
 		</h1>
+		{#if !version.insecure && version.has_insecure_dependency}
+			<span class="insecure-warning">VULNERABLE DEPENDENCIES</span>
+		{:else if version.insecure}
+			<span class="insecure-warning">REPORTED VULNERABILITIES</span>
+		{/if}
+		{#if details.archived}
+			<span class="archived">ARCHIVED</span>
+		{/if}
 		<div class="features">
-			<span>v{details.version}</span>
+			<span>v{version.version}</span>
 			|
-			<span class="license">{details.license}</span>
+			<span class="license">{version.license}</span>
 			|
 			<span>
-				Updated: {timeAgo(details.lastUpdated)}
-				{#if true}
-					<img src={leaf} alt="fresh" />
-				{:else}
+				Updated: {timeAgo(version.createdat)}
+				{#if isStale(version.createdat)}
 					<img src={yellowSand} alt="stale" />
-					<!-- <img src="{redSand}" alt="inactive"> -->
+				{:else}
+					<img src={leaf} alt="fresh" />
 				{/if}
 			</span>
 			|
-			<span>{details.size} kb</span>
+			<span>{version.size_kb} </span>
 
 			<!-- <span>Used By: <a href="#">{details.usedBy?.length}</a></span> -->
 		</div>
@@ -38,20 +48,38 @@
 
 	<div class="row">
 		<!-- <a class="repo-link" href={details.links.url}> <img src={gh} alt="github logo" class="github-logo" />Repository</a> -->
-		<Tags tags={details.tags} />
+		<Tags tags={details.keywords} />
 		<div>
-			<span>
-				Depends On: <a href="#/" on:click={() => dispatch('clickDeps')}>
-					{Object.keys(details.dependsOn)?.length ?? 0}
-				</a>
-			</span>
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			{#if version.dependency_count == 0}
+				<span style="color:rgba(50,200,75,0.8)"> Dependencies: None </span>
+			{:else}
+				<span class="link" on:click={() => dispatch('goto_deps')}>
+					Dependencies: {version.dependency_count}
+				</span>
+			{/if}
 			|
-			<span>Compiler: {details.requirements.compiler}</span>
+			<span>Compiler: {version.compiler}</span>
 		</div>
 	</div>
 </header>
 
 <style>
+	.archived {
+		color: orange;
+		font-weight: 900;
+	}
+	.insecure-warning {
+		color: red;
+		font-weight: 900;
+	}
+	.link {
+		color: var(--color-theme-1);
+	}
+	.link:hover {
+		text-decoration: underline;
+		cursor: pointer;
+	}
 	.license {
 		color: greenyellow;
 	}

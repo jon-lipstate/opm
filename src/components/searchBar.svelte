@@ -17,7 +17,7 @@
 
 	if (typeof window !== 'undefined') {
 		window.addEventListener('keydown', function (e) {
-			if (e.ctrlKey && e.key === 'k') {
+			if (e.ctrlKey && e.key === '/') {
 				e.preventDefault();
 				//@ts-ignore
 				document.getElementById('query').focus();
@@ -41,7 +41,7 @@
 		<button type="submit" style="display: none;" />
 		<!-- Hidden submit button to trigger form submission -->
 		<div class="shortcut">
-			<kbd class="">Ctrl</kbd> <kbd class="">K</kbd>
+			<kbd class="">Ctrl</kbd> <kbd class="">/</kbd>
 		</div>
 	</form>
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -64,14 +64,14 @@
 		display: none;
 	}
 	.search-input {
-		padding: 0.2em 0.5em;
+		padding: 0.5rem 0.5rem;
 		border: 1px solid var(--back-translucent);
 		/* https://font.gooova.com/fonts/13876/ */
 		font-family: sans-serif;
-		font-size: 2rem;
+		font-size: 1.5rem;
 		appearance: none;
 		width: 100%;
-		height: 1.3em;
+		height: 2.5rem;
 		background-color: var(--color-bg-0);
 		color: var(--color-text);
 		border-radius: var(--border-radius);

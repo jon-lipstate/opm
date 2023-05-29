@@ -33,6 +33,7 @@ $$;
 -- SELECT insert_package(' Name', ' Description', ' README', ' Repository', false);
 CREATE OR REPLACE FUNCTION insert_new_package(
     _name TEXT, 
+    _slug TEXT, 
     _description TEXT, 
     _readme TEXT, 
     _repository TEXT, 
@@ -44,16 +45,8 @@ DECLARE
     _package_id INTEGER;
     existing_count INTEGER;
 BEGIN
-    -- Check if package with same name and owner exists
-    SELECT COUNT(*) INTO existing_count
-    FROM public.packages
-    WHERE name = _name AND owner = _owner;
-    IF existing_count > 0 THEN
-        RAISE EXCEPTION 'Package with same name already exists for this owner';
-    END IF;
-
-    INSERT INTO packages(name, description, readme, repository, archived, owner)
-    VALUES (_name, _description, _readme, _repository, false, _owner) 
+    INSERT INTO packages(name, slug, description, readme, repository, archived, owner)
+    VALUES (_name, _slug, _description, _readme, _repository, false, _owner) 
     RETURNING id INTO _package_id;
 
     RETURN _package_id;
@@ -82,7 +75,7 @@ BEGIN
         RAISE EXCEPTION 'Same Version for this package detected';
     END IF;
 
-    INSERT INTO versions(package_id, version, license, size_kb, published_by, insecure, odin_compiler, checksum)
+    INSERT INTO versions(package_id, version, license, size_kb, published_by, insecure, compiler, checksum)
     VALUES (_package_id, _version, _license, _size_kb, _published_by, false, _odin_compiler, _checksum)
     RETURNING id INTO _version_id;
 
@@ -120,6 +113,7 @@ $$ LANGUAGE plpgsql;
 -- 
 CREATE OR REPLACE PROCEDURE create_new_package(
     _name TEXT, 
+    _slug TEXT, 
     _description TEXT, 
     _readme TEXT, 
     _repository TEXT, 
@@ -143,7 +137,7 @@ DECLARE
     existing_count INTEGER;
 BEGIN
     -- Call the function to insert a new package
-    _package_id := insert_new_package(_name, _description, _readme, _repository, _published_by);
+    _package_id := insert_new_package(_name, _slug, _description, _readme, _repository, _published_by);
 
     -- Insert into versions table
     _version_id := insert_new_version(_package_id, _version, _license, _size_kb, _published_by, _odin_compiler, _checksum);

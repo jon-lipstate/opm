@@ -26,7 +26,7 @@
 
 <style>
 	.warning {
-		color: rgba(183, 14, 14, 0.709);
+		color: rgba(217, 0, 0, 0.709);
 		text-align: center;
 		margin-top: 1rem;
 		font-style: italic;

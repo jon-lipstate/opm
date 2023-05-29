@@ -15,8 +15,7 @@ export async function POST(event) {
   		`;
 		return json(res);
 	} catch (err) {
-		console.error('SQL Search Error', err);
-		//@ts-ignore
-		return error(500, { statusText: `SQL Search Error:, ${err}` });
+		console.error('SQL Search Error\n', err);
+		throw error(500, `SQL Search Error:, ${err}`);
 	}
 }

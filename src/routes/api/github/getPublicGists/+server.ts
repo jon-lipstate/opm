@@ -1,4 +1,4 @@
-import { fail, json, type ActionFailure } from '@sveltejs/kit';
+import { fail, json, type ActionFailure, error } from '@sveltejs/kit';
 import axios from 'axios';
 import { getAuth } from '../../auth.js';
 
@@ -24,7 +24,6 @@ export async function GET(event) {
 		return json(gists);
 	} catch (e) {
 		console.error(`>>> getPublicGists: "${session}"`);
-		//@ts-ignore
-		return fail(503, `api: getPublicGists, err: ${e}`);
+		throw error(503, `api: getPublicGists, err: ${e}`);
 	}
 }

@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	export let tabs: string[];
+	type Tab = {
+		name: string;
+		disabled?: boolean;
+	};
+	export let tabs: Tab[];
 	export let selectedTab: number = 0;
 	const dispatch = createEventDispatcher();
 
@@ -13,7 +17,17 @@
 <ul>
 	{#each tabs as tab, i (i)}
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<li class:selected={i === selectedTab} on:click={() => selectTab(i)}>{tab}</li>
+		<li
+			class:selected={i === selectedTab}
+			class:disabled={tab.disabled}
+			on:click={() => {
+				if (!tab.disabled) {
+					selectTab(i);
+				}
+			}}
+		>
+			{tab.name}
+		</li>
 	{/each}
 </ul>
 
@@ -35,6 +49,10 @@
 		font-size: 1.5rem;
 		cursor: pointer;
 		text-align: center;
+	}
+	li.disabled {
+		color: var(--color-theme-4);
+		cursor: not-allowed;
 	}
 	.selected {
 		color: var(--color-theme-1);

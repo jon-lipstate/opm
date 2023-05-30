@@ -201,6 +201,7 @@ CREATE OR REPLACE FUNCTION get_package_details(_package_id INTEGER)
 RETURNS TABLE(
     id INTEGER,
     name TEXT,
+    slug TEXT,
     description TEXT,
     archived BOOLEAN,
     keywords TEXT[],
@@ -216,6 +217,7 @@ BEGIN
     SELECT 
         p.id,
         p.name,
+        p.slug,
         p.description,
         p.archived,
         (SELECT array_agg(k.keyword) FROM package_keywords pk INNER JOIN keywords k ON pk.keyword_id = k.id WHERE pk.package_id = _package_id) AS keywords,

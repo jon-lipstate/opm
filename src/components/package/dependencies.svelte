@@ -2,7 +2,6 @@
 	import { goto } from '$app/navigation';
 	import { timeAgo } from '$lib/utils';
 	import type { FlatDependencies, LicenseSummary } from 'src/routes/api/details/dependencies/+server';
-	import { pageParamsStore } from '$stores/pageParams';
 	//
 	function navTo(owner, slug) {
 		// pageParamsStore.set({ owner, slug });

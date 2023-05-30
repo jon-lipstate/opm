@@ -10,7 +10,7 @@
 	export let details: App.PackageDetails;
 	export let versionIndex = 0;
 
-	const version = details.versions[versionIndex];
+	$: version = details.versions[versionIndex];
 </script>
 
 <header class="details-header">

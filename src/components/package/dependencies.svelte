@@ -1,27 +1,16 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { timeAgo } from '$lib/utils';
 	import type { FlatDependencies, LicenseSummary } from 'src/routes/api/details/dependencies/+server';
-	import { onMount } from 'svelte';
+	import { pageParamsStore } from '$stores/pageParams';
 	//
-	export let versionId;
-	let licenses: LicenseSummary[] = [];
-	let flat: FlatDependencies[] = [];
-	let error;
+	function navTo(owner, slug) {
+		// pageParamsStore.set({ owner, slug });
+		goto(`/packages/${owner}/${slug}`);
+	}
 	//
-	onMount(async () => {
-		const response = await fetch(`/api/details/dependencies`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ versionId })
-		});
-		if (response.ok) {
-			const pageData = await response.json();
-			flat = pageData.flat;
-			licenses = pageData.licenses;
-		} else {
-			error = (await response.json()).message;
-		}
-	});
+	export let licenses: LicenseSummary[] = [];
+	export let flat: FlatDependencies[] = [];
 </script>
 
 <section>
@@ -56,7 +45,8 @@
 			<tbody>
 				{#each flat as dep, i (i)}
 					<tr>
-						<td><a href="/packages/{dep.owner}/{dep.slug}">{dep.package_name}</a></td>
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<td on:click={() => navTo(dep.owner, dep.slug)} class="link">{dep.package_name}</td>
 						<td>{dep.version}</td>
 						<td>{dep.license}</td>
 						{#if dep.archived}
@@ -77,6 +67,13 @@
 </section>
 
 <style>
+	.link {
+		color: var(--color-theme-1);
+	}
+	.link:hover {
+		text-decoration: underline;
+		cursor: pointer;
+	}
 	.primary {
 		color: var(--color-theme-1);
 	}

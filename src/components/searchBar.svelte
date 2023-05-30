@@ -1,14 +1,10 @@
 <script>
-	import axios from 'axios';
 	import { goto } from '$app/navigation';
-	import { searchResults } from '$stores/search';
 
 	let query = '';
 
 	async function handleSearch(e) {
 		try {
-			const response = await axios.post(`api/search`, { query });
-			$searchResults = response.data;
 			goto(`/search?query=${encodeURIComponent(query)}`);
 		} catch (error) {
 			console.error('handleSearch Error:', error);

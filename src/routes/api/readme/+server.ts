@@ -14,6 +14,7 @@ md.renderer.rules.code = function (tokens, idx) {
 	return '<span class="inline-code">' + tokens[idx].content + '</span>';
 };
 export async function POST(event) {
+	console.error('TEST IF CER DIES');
 	const body = JSON.parse(await event.request.text());
 	let data;
 	if (body.data) {
@@ -40,6 +41,11 @@ export async function POST(event) {
 	} catch (e) {
 		console.error('HLJS-ERR', e);
 	}
+	console.warn('AFTER1');
+	console.warn('AFTER', dom);
+	console.warn('AFTER', dom.window);
+	console.warn('AFTER', dom.document);
+	console.warn('AFTER', dom.document.documentElement);
 	console.warn('AFTER HLJS', dom.window.document.documentElement.outerHTML);
 
 	let html = dom.window.document.documentElement.outerHTML;

@@ -27,12 +27,58 @@
 	--color-theme-3: #4075a6;
 	--color-theme-4: #90a4b7;
 	--color-text: rgb(199, 205, 211);
+	--color-odin-blue: #3882d2;
 	--column-width: 42rem;
 	--column-margin-top: 4rem;
 	font-family: var(--font-body);
 	color: var(--color-text);
 	--border-radius: 3px;
 	--back-translucent: rgba(51, 76, 102,55)
+
+/*https://colors.artyclick.com/color-shades-finder/?color=#EF7A30*/
+	--c-odin-orange: #ef7a30;
+	/* --c-odin-orange-darken-1: #D86D2B;
+	--c-odin-orange-darken-2: #C06126;
+	--c-odin-orange-darken-3: #A85522;
+	--c-odin-orange-darken-4: #90491D;
+	--c-odin-orange-darken-5: #783D18;
+	--c-odin-orange-darken-6: #603113;
+	--c-odin-orange-darken-7: #48240E;
+	--c-odin-orange-darken-8: #30180A;
+	--c-odin-orange-darken-9: #180C05;
+	--c-odin-orange-lighten-1: #F18644;
+	--c-odin-orange-lighten-2: #F39357;
+	--c-odin-orange-lighten-3: #F4A06B;
+	--c-odin-orange-lighten-4: #F6AD80;
+	--c-odin-orange-lighten-5: #F7BA94;
+	--c-odin-orange-lighten-6: #F9C8A9;
+	--c-odin-orange-lighten-7: #FAD5BE;
+	--c-odin-orange-lighten-8: #FCE3D4;
+	--c-odin-orange-lighten-9: #FDF1E9; */
+	
+
+	--c-odin-complementary: #C77D2D;
+	--c-odin-blue: #3882d2;
+	/* --c-odin-blue-darken-1: #3375BC;
+	--c-odin-blue-darken-2: #2D68A7;
+	--c-odin-blue-darken-3: #285B92;
+	--c-odin-blue-darken-4: #224E7D;
+	--c-odin-blue-darken-5: #1C4169;
+	--c-odin-blue-darken-6: #173454;
+	--c-odin-blue-darken-7: #11273F;
+	--c-odin-blue-darken-8: #0B1A2A;
+	--c-odin-blue-darken-9: #060D15;
+	--c-odin-blue-lighten-1: #498DD6;
+	--c-odin-blue-lighten-2: #5B98DA;
+	--c-odin-blue-lighten-3: #6DA4DF;
+	--c-odin-blue-lighten-4: #80B0E3;
+	--c-odin-blue-lighten-5: #93BCE8;
+	--c-odin-blue-lighten-6: #A8C9ED;
+	--c-odin-blue-lighten-7: #BCD6F1;
+	--c-odin-blue-lighten-8: #D2E3F6;
+	--c-odin-blue-lighten-9: #E8F1FA; */
+	
+
 }
 
 body {
@@ -48,7 +94,10 @@ body {
 	background-size: 100vw 100vh;
 	/* background-image: linear-gradient(180deg, var(--color-bg-0) 0%, var(--color-bg-2) 10%); */
 }
-
+ul{ list-style-type: none;}
+li {
+	text-decoration: none;
+}
 h1,
 h2,
 p {
@@ -68,13 +117,18 @@ a:hover {
 }
 
 
+pre,code {
+	font-family: 'Courier New', monospace;
+	/* color: var(--c-odin-blue-lighten-3); */
+}
+
+/* 
 pre {
 	font-size: 16px;
 	font-family: var(--font-mono);
 	background-color: rgba(255, 255, 255, 0.45);
 	border-radius: 3px;
 	box-shadow: 2px 2px 6px rgb(255 255 255 / 25%);
-	/* padding: 0.5em; */
 	overflow-x: auto;
 	color: var(--color-text);
 }
@@ -85,8 +139,8 @@ code {
     border-radius: 5px;
     line-height: 1.6;
 	color: var(--color-text);
-    white-space: pre-wrap;   /* Since CSS 2.1 */
+    white-space: pre-wrap;   
     display: block;
     padding: 0 1rem 1rem 1rem;
-    word-wrap: break-word;   /* Internet Explorer 5.5+ */
-}
+    word-wrap: break-word;  
+} */

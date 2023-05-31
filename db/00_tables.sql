@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     gh_access_token TEXT NOT NULL,
 	gh_avatar TEXT,
     gh_id INT NOT NULL, -- not certain if i need?
-    gh_email TEXT NOT NULL, -- not 100% sure i need this? make nullable, only need if publisher?
+    gh_email TEXT NOT NULL, -- not sure i need this? make nullable, only need if publisher?
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	last_login TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -26,10 +26,10 @@ CREATE TABLE IF NOT EXISTS public.users (
 CREATE TABLE IF NOT EXISTS public.packages (
     id SERIAL PRIMARY KEY,
 	owner INTEGER REFERENCES users(id),
-	name TEXT NOT NULL,
+	name TEXT NOT NULL, -- todo: what to do if rename? forward links, or just ban rename?
 	slug TEXT NOT NULL,
-	readme_rendered_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- internal use only i think?
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- internal use only i think?
+	readme_rendered_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- todo: poll gh readme dates?
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- only for name/archived? delete?
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	description TEXT,
 	readme TEXT,
@@ -41,6 +41,18 @@ CREATE TABLE IF NOT EXISTS public.packages (
 UPDATE packages SET TSV = to_tsvector('english', name || ' ' || description);
 CREATE INDEX packages_tsv_idx ON packages USING gin(tsv);
 
+CREATE TABLE security_issues (
+    id SERIAL PRIMARY KEY,
+    version_id INTEGER REFERENCES versions(id),
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    link TEXT, -- http-url
+    severity_level TEXT NOT NULL CHECK (severity_level IN ('low', 'medium', 'high', 'critical')),
+    reporter_id INTEGER REFERENCES users(id), -- must login or anon ok??
+	reported_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    pending BOOLEAN DEFAULT false, -- if left pending for x-days triggers a confirm?
+    UNIQUE(version_id, name)
+);
 
 CREATE TABLE IF NOT EXISTS public.package_authors (
     package_id INTEGER NOT NULL REFERENCES packages(id),
@@ -57,10 +69,11 @@ CREATE TABLE IF NOT EXISTS public.versions (
 	license TEXT NOT NULL,
 	size_kb INTEGER,
 	published_by INTEGER REFERENCES users(id),
-	insecure BOOLEAN DEFAULT false, -- aka yank
+	insecure BOOLEAN DEFAULT false, -- cached flag of security_issue entry, updated on a trigger
 	compiler TEXT NOT NULL,
 	downloads INTEGER DEFAULT 0,
-	checksum CHAR(64) NOT NULL
+	checksum CHAR(64) NOT NULL,
+	commit_hash TEXT NOT NULL,
 );
 
 CREATE TABLE IF NOT EXISTS public.keywords (
@@ -84,22 +97,26 @@ CREATE TABLE package_dependencies (
     UNIQUE(package_id, version_id, dependency_package_id, dependency_version_id)
 );
 
-
 CREATE TABLE IF NOT EXISTS public.stars (
     user_id INTEGER NOT NULL REFERENCES users(id),
     package_id INTEGER NOT NULL REFERENCES packages(id),
     PRIMARY KEY(user_id, package_id)
 );
+
 -- meta-tables
 CREATE TABLE IF NOT EXISTS public.reserved_names (
     name TEXT NOT NULL
 );
+
+-- throttle package creation to prevent spamming
 CREATE TABLE IF NOT EXISTS public.create_limits (
 	-- TODO PK
     user_id INTEGER NOT NULL REFERENCES users(id),
 	actions INTEGER NOT NULL,
     last_refill timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+-- action logs
 CREATE TABLE IF NOT EXISTS public.actions (
 	-- TODO PK
     user_id INTEGER NOT NULL REFERENCES users(id),
@@ -107,6 +124,8 @@ CREATE TABLE IF NOT EXISTS public.actions (
 	action TEXT NOT NULL,
     time_of timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+-- user-cli auth tokens
 CREATE TABLE IF NOT EXISTS public.api_tokens (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id),

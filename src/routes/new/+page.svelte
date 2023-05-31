@@ -12,6 +12,7 @@
 <div class="my-1">
 	<Slider bind:checked={useRepos} whenTrue={'Source: Repositories'} whenFalse={'Source: Gists'} />
 </div>
+<p style="color:red">Submittals not implemented at present.</p>
 {#if useRepos}
 	<NewPackage />
 {:else}

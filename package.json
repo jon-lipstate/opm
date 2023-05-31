@@ -40,7 +40,11 @@
 		"@macfja/svelte-persistent-store": "^2.3.0",
 		"@vercel/analytics": "^1.0.1",
 		"axios": "^1.4.0",
+		"dompurify": "^3.0.3",
+		"highlight.js": "^11.8.0",
+		"jsdom": "^22.1.0",
 		"json5": "^2.2.3",
-		"postgres": "^3.3.4"
+		"postgres": "^3.3.4",
+		"remarkable": "^2.0.1"
 	}
 }

@@ -14,13 +14,14 @@ md.renderer.rules.code = function (tokens, idx) {
 	return '<span class="inline-code">' + tokens[idx].content + '</span>';
 };
 export async function POST(event) {
-	console.error('TEST IF CER DIES');
 	const body = JSON.parse(await event.request.text());
 	let data;
 	if (body.data) {
 		data = body.data;
 	} else if (body.url) {
 		const res = await axios.get(body.url);
+		console.warn('GOT URL');
+
 		if (res.status != 200) {
 			throw error(res.status, res.statusText);
 		}
@@ -29,29 +30,25 @@ export async function POST(event) {
 	} else {
 		throw error(400, "readme requires 'data' or 'url' to process.");
 	}
-	console.info('RENDER');
-	const rendered = md.render(data);
+	let rendered = md.render(data);
+	// const res = hljs.highlight(rendered, { language: 'odin' }, true);
 	const dom = new JSDOM(rendered);
 	console.info('HLJS');
 	try {
 		dom.window.document.querySelectorAll('pre').forEach((x) => {
 			hljs.highlightElement(x);
-			// hljs.highlightAuto(x, { language: 'odin' });
+			//
 		});
 	} catch (e) {
 		console.error('HLJS-ERR', e);
+		throw error(400, e);
 	}
 	console.warn('AFTER1');
-	console.warn('AFTER', dom);
-	console.warn('AFTER', dom.window);
-	console.warn('AFTER', dom.document);
-	console.warn('AFTER', dom.document.documentElement);
-	console.warn('AFTER HLJS', dom.window.document.documentElement.outerHTML);
-
 	let html = dom.window.document.documentElement.outerHTML;
 	console.info('PURIFY');
 	const DOMPurify = createDOMPurify(dom.window);
 	html = DOMPurify.sanitize(html);
 	console.info('API COMPLETE');
+	// let html = res;
 	return json({ html });
 }

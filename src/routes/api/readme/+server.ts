@@ -32,10 +32,15 @@ export async function POST(event) {
 	const rendered = md.render(data);
 	const dom = new JSDOM(rendered);
 	console.info('HLJS');
-	dom.window.document.querySelectorAll('pre').forEach((x) => {
-		hljs.highlightElement(x);
-		// hljs.highlightAuto(x, { language: 'odin' });
-	});
+	try {
+		dom.window.document.querySelectorAll('pre').forEach((x) => {
+			hljs.highlightElement(x);
+			// hljs.highlightAuto(x, { language: 'odin' });
+		});
+	} catch (e) {
+		console.error('HLJS-ERR', e);
+	}
+
 	let html = dom.window.document.documentElement.outerHTML;
 	console.info('PURIFY');
 	const DOMPurify = createDOMPurify(dom.window);

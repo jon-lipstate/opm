@@ -8,6 +8,9 @@
 	onMount(async () => {
 		const url = 'https://raw.githubusercontent.com/odin-lang/Odin/master/examples/demo/demo.odin';
 		const res = await axios.post('/api/readme', { url });
+		if (res.status != 200) {
+			console.error(res.statusText);
+		}
 		readme = res.data.html;
 	});
 </script>

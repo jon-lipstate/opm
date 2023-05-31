@@ -1,7 +1,10 @@
 <script>
 	import axios from 'axios';
 	import './ayu-mirage.css'; // or any other style you like
-	import { onMount } from 'svelte';
+	import { afterUpdate, onMount } from 'svelte';
+	import odin from './odin-hl.js';
+	import hljs from 'highlight.js/lib/core';
+	hljs.registerLanguage('odin', odin);
 
 	let readme = '';
 
@@ -12,6 +15,13 @@
 			console.error(res.statusText);
 		}
 		readme = res.data.html;
+	});
+	afterUpdate(() => {
+		const code = document.querySelectorAll('code');
+		// debbounce updates with no code blocks
+		if (code.length > 0) {
+			hljs.highlightAll();
+		}
 	});
 </script>
 

@@ -3,9 +3,6 @@ import axios from 'axios';
 import createDOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import { error, json } from '@sveltejs/kit';
-// import odin from './odin-hl.js';
-// import hljs from 'highlight.js';
-// hljs.registerLanguage('odin', odin);
 
 var md = new Remarkable('commonmark');
 md.renderer.rules.code = function (tokens, idx) {
@@ -28,17 +25,7 @@ export async function POST(event) {
 		throw error(400, "readme requires 'data' or 'url' to process.");
 	}
 	let rendered = md.render(data);
-	// const res = hljs.highlight(rendered, { language: 'odin' }, true);
 	const dom = new JSDOM(rendered);
-	// console.info('HLJS');
-	// try {
-	// 	dom.window.document.querySelectorAll('pre').forEach((x) => {
-	// 		hljs.highlightElement(x);
-	// 	});
-	// } catch (e) {
-	// 	console.error('HLJS-ERR', e);
-	// 	throw error(400, e);
-	// }
 	let html = dom.window.document.documentElement.outerHTML;
 	const DOMPurify = createDOMPurify(dom.window);
 	html = DOMPurify.sanitize(html);

@@ -40,6 +40,7 @@ export async function POST(event) {
 	} catch (e) {
 		console.error('HLJS-ERR', e);
 	}
+	console.warn('AFTER HLJS', dom.window.document.documentElement.outerHTML);
 
 	let html = dom.window.document.documentElement.outerHTML;
 	console.info('PURIFY');

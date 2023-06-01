@@ -1,26 +1,37 @@
 DROP TABLE IF EXISTS public.package_dependencies CASCADE;
-DROP TABLE IF EXISTS public.stars CASCADE;
+DROP TABLE IF EXISTS public.bookmarks CASCADE;
 DROP TABLE IF EXISTS public.package_keywords CASCADE;
 DROP TABLE IF EXISTS public.keywords CASCADE;
 DROP TABLE IF EXISTS public.versions CASCADE;
 DROP TABLE IF EXISTS public.users CASCADE;
+DROP TYPE IF EXISTS public.package_state CASCADE;
+DROP TYPE IF EXISTS public.severity CASCADE;
 DROP TABLE IF EXISTS public.packages CASCADE;
 DROP TABLE IF EXISTS public.actions CASCADE;
 DROP TABLE IF EXISTS public.api_tokens CASCADE;
 DROP TABLE IF EXISTS public.create_limits CASCADE;
 DROP TABLE IF EXISTS public.package_authors CASCADE;
 DROP TABLE IF EXISTS public.reserved_names CASCADE;
+DROP TABLE IF EXISTS public.scopes CASCADE;
+DROP TABLE IF EXISTS public.user_scopes CASCADE;
+DROP TABLE IF EXISTS public.security_issues CASCADE;
+DROP TABLE IF EXISTS public.background_jobs CASCADE;
+DROP EXTENSION pgcrypto;
+--
+CREATE TYPE package_state AS ENUM ('unpublished','active', 'archived','moderated','deleted');
+CREATE TYPE severity AS ENUM ('low','medium', 'high', 'critical');
 
+--
 
 CREATE TABLE IF NOT EXISTS public.users (
 	id SERIAL PRIMARY KEY,
 	gh_login TEXT NOT NULL,
     gh_access_token TEXT NOT NULL,
 	gh_avatar TEXT,
-    gh_id INT NOT NULL, -- not certain if i need?
-    gh_email TEXT NOT NULL, -- not sure i need this? make nullable, only need if publisher?
+    gh_id INT NOT NULL, -- stable id, login can change
+	gh_created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	last_login TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS public.packages (
@@ -28,31 +39,19 @@ CREATE TABLE IF NOT EXISTS public.packages (
 	owner INTEGER REFERENCES users(id),
 	name TEXT NOT NULL, -- todo: what to do if rename? forward links, or just ban rename?
 	slug TEXT NOT NULL,
-	readme_rendered_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- todo: poll gh readme dates?
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- only for name/archived? delete?
-	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	description TEXT,
-	readme TEXT,
+    readme TEXT,
+	url TEXT, -- url or git, both?
+	state package_state DEFAULT 'active',
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	readme_rendered_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- todo: poll gh readme dates?
 	TSV tsvector,
-	repository TEXT, -- url or git, both?
-	archived BOOLEAN DEFAULT false,
     UNIQUE(name,owner)
 );
 UPDATE packages SET TSV = to_tsvector('english', name || ' ' || description);
 CREATE INDEX packages_tsv_idx ON packages USING gin(tsv);
 
-CREATE TABLE security_issues (
-    id SERIAL PRIMARY KEY,
-    version_id INTEGER REFERENCES versions(id),
-    name TEXT NOT NULL,
-    description TEXT NOT NULL,
-    link TEXT, -- http-url
-    severity_level TEXT NOT NULL CHECK (severity_level IN ('low', 'medium', 'high', 'critical')),
-    reporter_id INTEGER REFERENCES users(id), -- must login or anon ok??
-	reported_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    pending BOOLEAN DEFAULT false, -- if left pending for x-days triggers a confirm?
-    UNIQUE(version_id, name)
-);
 
 CREATE TABLE IF NOT EXISTS public.package_authors (
     package_id INTEGER NOT NULL REFERENCES packages(id),
@@ -65,17 +64,32 @@ CREATE TABLE IF NOT EXISTS public.versions (
     id SERIAL PRIMARY KEY,
 	package_id INTEGER REFERENCES packages(id),
 	version TEXT NOT NULL,
+    --updated_at ?? i dont think so??
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL,
 	license TEXT NOT NULL,
 	size_kb INTEGER,
 	published_by INTEGER REFERENCES users(id),
 	insecure BOOLEAN DEFAULT false, -- cached flag of security_issue entry, updated on a trigger
 	compiler TEXT NOT NULL,
-	downloads INTEGER DEFAULT 0,
-	checksum CHAR(64) NOT NULL,
-	commit_hash TEXT NOT NULL,
+	downloads INTEGER DEFAULT 0
+	-- checksum CHAR(64) NOT NULL,
+	-- commit_hash TEXT NOT NULL,
 );
 
+-- idk if this is a keeper, only really care to point users to more info
+CREATE TABLE security_issues (
+    id SERIAL PRIMARY KEY,
+    version_id INTEGER REFERENCES versions(id),
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    link TEXT, -- http-url
+    level severity NOT NULL,
+    reporter_id INTEGER REFERENCES users(id), -- must login or anon ok??
+	reported_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    pending BOOLEAN DEFAULT false, -- if left pending for x-days triggers a confirm?
+    UNIQUE(version_id, name)
+);
 CREATE TABLE IF NOT EXISTS public.keywords (
     id SERIAL PRIMARY KEY,
     keyword TEXT NOT NULL UNIQUE
@@ -97,13 +111,17 @@ CREATE TABLE package_dependencies (
     UNIQUE(package_id, version_id, dependency_package_id, dependency_version_id)
 );
 
-CREATE TABLE IF NOT EXISTS public.stars (
+CREATE TABLE IF NOT EXISTS public.bookmarks (
     user_id INTEGER NOT NULL REFERENCES users(id),
     package_id INTEGER NOT NULL REFERENCES packages(id),
     PRIMARY KEY(user_id, package_id)
 );
 
 -- meta-tables
+--https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
+--Odin Reserved Names
+--https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/blob/master/en
+--https://www.cs.cmu.edu/~biglou/resources/bad-words.txt
 CREATE TABLE IF NOT EXISTS public.reserved_names (
     name TEXT NOT NULL
 );
@@ -118,19 +136,51 @@ CREATE TABLE IF NOT EXISTS public.create_limits (
 
 -- action logs
 CREATE TABLE IF NOT EXISTS public.actions (
-	-- TODO PK
+    id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id),
-    version_id INTEGER NOT NULL REFERENCES versions(id),
-	action TEXT NOT NULL,
-    time_of timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    table_name TEXT NOT NULL,
+    row_id INTEGER NOT NULL,
+    action TEXT NOT NULL,
+    comment TEXT,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+
 -- user-cli auth tokens
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 CREATE TABLE IF NOT EXISTS public.api_tokens (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id),
+    name TEXT NOT NULL,
+    token_hash bytea NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL, 
-    last_used_at timestamp without time zone,
-	revoked BOOLEAN DEFAULT false,
-	scopes TEXT[]
+    updated_at timestamp without time zone, -- last used | edited
+	revoked BOOLEAN DEFAULT false
+);
+-- INSERT INTO api_tokens (user_id, name, token_hash, scopes)
+-- VALUES (_user_id, _name, digest(_token, 'sha256'), _scopes);
+
+-- SELECT * FROM api_tokens 
+-- WHERE user_id = _user_id 
+-- AND token_hash = digest(_token, 'sha256');
+
+CREATE TABLE public.background_jobs (
+    id bigint NOT NULL,
+    job_type text NOT NULL,
+    data jsonb DEFAULT '{}'::jsonb NOT NULL,
+    retries integer DEFAULT 0 NOT NULL,
+    last_retry timestamp without time zone DEFAULT '1970-01-01 00:00:00'::timestamp without time zone NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.scopes (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS public.user_scopes (
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    scope_id INTEGER NOT NULL REFERENCES scopes(id),
+    granted_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (user_id, scope_id)
 );

@@ -7,6 +7,7 @@
 	let useRepos = true; // gist vs repo sources
 
 	// TODO: REQUIRED VERIFICATIONS
+	// https://github.com/rust-lang/cargo/blob/58b22f00ef76667ec4f93f4f7936831eaf63f5b7/src/cargo/util/restricted_names.rs
 </script>
 
 <div class="my-1">

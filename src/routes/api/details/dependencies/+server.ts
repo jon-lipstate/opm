@@ -12,7 +12,7 @@ export type FlatDependencies = {
 	version: string;
 	license: string;
 	last_updated: string;
-	archived: string;
+	state: string;
 	insecure: string;
 };
 

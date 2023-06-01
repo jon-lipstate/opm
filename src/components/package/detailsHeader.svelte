@@ -40,7 +40,7 @@
 				{/if}
 			</span>
 			|
-			<span>{version.size_kb} </span>
+			<span>{version.size_kb} kb</span>
 
 			<!-- <span>Used By: <a href="#">{details.usedBy?.length}</a></span> -->
 		</div>

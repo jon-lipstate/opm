@@ -117,7 +117,7 @@ RETURNS TABLE(
     version TEXT,
     license TEXT,
     last_updated TIMESTAMP,
-    archived BOOLEAN,
+    state package_state,
     insecure BOOLEAN
 )
 LANGUAGE plpgsql
@@ -142,7 +142,7 @@ BEGIN
         v.version,
         v.license,
         v.created_at AS last_updated,
-        p.archived,
+        p.state,
         v.insecure
     FROM 
         packages p
@@ -154,6 +154,7 @@ BEGIN
         v.id != _version_id AND v.id = ANY(SELECT version_id FROM all_dependencies);
 END;
 $$;
+
 
 -------------------------------------------------------------------------------------------
 
@@ -203,10 +204,10 @@ RETURNS TABLE(
     name TEXT,
     slug TEXT,
     description TEXT,
-    archived BOOLEAN,
+    state package_state,
     keywords TEXT[],
     stars BIGINT,
-    repository TEXT,
+    url TEXT,
     readme TEXT,
     owner TEXT,
     authors TEXT[]
@@ -219,10 +220,10 @@ BEGIN
         p.name,
         p.slug,
         p.description,
-        p.archived,
+        p.state,
         (SELECT array_agg(k.keyword) FROM package_keywords pk INNER JOIN keywords k ON pk.keyword_id = k.id WHERE pk.package_id = _package_id) AS keywords,
         (SELECT COUNT(*) FROM stars s WHERE s.package_id = _package_id) AS stars,
-        p.repository,
+        p.url,
         p.readme,
         u.gh_login AS owner,
         ARRAY(

@@ -3,6 +3,7 @@ Language: Odin
 Author: Jon Lipstate <Jon@Lipstate.com>
 Description: Odin-Language definition
 Website: https://odin-lang.org
+Repo: https://github.com/jon-lipstate/highlight-odin
 */
 export default function (hljs) {
 	const ODIN_KEYWORDS = {

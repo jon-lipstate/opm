@@ -69,9 +69,6 @@ END;
 $$ 
 LANGUAGE plpgsql;
 
-
-
-
 ---
 CREATE OR REPLACE FUNCTION search_packages(_search TEXT, _limit INTEGER DEFAULT 50, _offset INTEGER DEFAULT 0)
 RETURNS TABLE (
@@ -113,7 +110,6 @@ BEGIN
         _offset;
 END; $$
 LANGUAGE plpgsql;
-
 
 -- SELECT * FROM search_packages('http server async');
 -- _offset => 20 to specify out of order named items
@@ -170,7 +166,9 @@ BEGIN
     LEFT JOIN -- constrain to newest version id (serial)
         versions AS v ON p.id = v.package_id AND v.id = (SELECT MAX(id) FROM versions WHERE package_id = p.id)
     WHERE 
-        p.id = ANY(_package_ids)
+        p.id = ANY(_package_ids) AND
+        -- p.state <> 'deleted'
+        p.state IN ('active', 'archived')
     GROUP BY
         p.id,
         u.gh_login,

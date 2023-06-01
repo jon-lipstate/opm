@@ -18,16 +18,20 @@ ALTER SEQUENCE public.users_id_seq RESTART WITH 1;
 ALTER SEQUENCE public.versions_id_seq RESTART WITH 1;
 ALTER SEQUENCE public.keywords_id_seq RESTART WITH 1;
 
-
+INSERT INTO scopes(name) VALUES
+('publish_own'),('update_own'),('delete_own'),('publish_any'),
+('update_any'),('delete_any'),('comment'),('vote'),
+('timeout_user'),('ban_user'),('update_user');
 
 -- Insert 3 users
-INSERT INTO public.users (gh_login, gh_access_token, gh_avatar, gh_id, gh_email) 
-VALUES ('jon', 'token1', 'avatar1', 1, 'jon@email.com'), 
-       ('odie', 'token2', 'avatar2', 2, 'odie@email.com'), 
-       ('freyja', 'token3', 'avatar3', 3, 'freyja@email.com');
+INSERT INTO public.users (gh_login, gh_access_token, gh_avatar, gh_id) 
+VALUES ('jon', 'token1', 'avatar1', 1), 
+       ('odie', 'token2', 'avatar2', 2), 
+       ('freyja', 'token3', 'avatar3', 3);
 
 -- Insert 2 packages by user1
 CALL create_new_package(
+    1, -- published_by
     'http server', 
     'http-server', 
     'a cool http/1.1 server', 
@@ -36,14 +40,13 @@ CALL create_new_package(
     '1.0.0', -- version
     'MIT',
     1024,
-    1, -- published_by
     'dev-2023-05', -- compiler
-    'checksum1',
     ARRAY['fancy', 'pants'], -- keywords
     ARRAY[]::INTEGER[] -- no dependencies
 );
 
 CALL create_new_package(
+    2, -- published_by
     'async runtime', 
     'async-runtime', 
     'it does stuff', 
@@ -52,14 +55,13 @@ CALL create_new_package(
     '1.2.3',
     'BSD 3-Clause',
     2048,
-    2, -- published_by
     'dev-2023-05',
-    'checksum2',
     ARRAY['sweat', 'pants'], -- keywords
     ARRAY[]::INTEGER[] -- no dependencies
 );
 
 CALL create_new_package(
+    2, -- published_by
     'i am a teapot', 
     'i-am-a-teapot', 
     '418', 
@@ -67,10 +69,8 @@ CALL create_new_package(
     'https://www.webfx.com/web-development/glossary/http-status-codes/what-is-a-418-status-code/', 
     '99.1.99',
     'GPL',
-    99999,
-    2, -- published_by
+    1234,
     'dev-2023-05',
-    'checksum2',
     ARRAY['no', 'pants'], -- keywords
     ARRAY[1,2]::INTEGER[]  -- deps
 );

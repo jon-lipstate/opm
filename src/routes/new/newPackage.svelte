@@ -20,15 +20,15 @@
 
 	//@ts-ignore
 	$: visibleRepos = repositories.filter((x) => showForks || !x.fork);
-	onMount(async () => {
-		try {
-			const repoRes = await axios.get(`/api/github/getPublicRepos`);
-			//@ts-ignore
-			repositories = repoRes.data;
-		} catch (e) {
-			console.error('api call error', e);
-		}
-	});
+	// onMount(async () => {
+	// 	try {
+	// 		const repoRes = await axios.get(`/api/github/getPublicRepos`);
+	// 		//@ts-ignore
+	// 		repositories = repoRes.data;
+	// 	} catch (e) {
+	// 		console.error('api call error', e);
+	// 	}
+	// });
 
 	async function handleSelectLib() {
 		missingPackageFile = false;

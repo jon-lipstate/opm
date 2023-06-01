@@ -22,7 +22,7 @@
 </script>
 
 <svelte:head>
-	<title>Browse | Page {currentPage + 1}</title>
+	<title>Browse | Page {currentPage}</title>
 	<meta name="description" content="Browse Page" />
 </svelte:head>
 

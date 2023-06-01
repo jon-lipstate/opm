@@ -7,7 +7,7 @@ export async function GET(event) {
 	try {
 		const repoRes = await axios.get(`https://api.github.com/user/repos`, authHeader);
 
-		const repos = repoRes.data.filter((x) => x.language == 'Odin');
+		let repos = repoRes.data.filter((x) => x.language == 'Odin');
 		const otherRepos = repoRes.data.filter((x) => x.language != 'Odin');
 
 		for (const repo of otherRepos) {
@@ -17,9 +17,86 @@ export async function GET(event) {
 				repos.push(repo);
 			}
 		}
-		return json(repos);
+		let cleanedRepos = repos.map((r) => {
+			let license = { ...r.license };
+			let value = {
+				name: r.name,
+				owner: r.owner.login,
+				html_url: r.html_url,
+				ssh_url: r.ssh_url,
+				description: r.description,
+				fork: r.fork,
+				created_at: r.created_at,
+				updated_at: r.updated_at,
+				homepage: r.homepage,
+				size_kb: r.size,
+				archived: r.archived,
+				license_id: license.spdx_id,
+				license_name: license.name,
+				visibility: r.visibility,
+				default_branch: r.default_branch
+			};
+			return value;
+		});
+
+		return json({ repos: cleanedRepos });
 	} catch (e) {
 		console.error(`>>> getPublicGists: "${session}"`);
 		throw error(503, `api: getPublicRepos, err: ${e}`);
 	}
 }
+const delOwnerKeys = [
+	'url',
+	'html_url',
+	'followers_url',
+	'following_url',
+	'gists_url',
+	'starred_url',
+	'subscriptions_url',
+	'organizations_url',
+	'repos_url',
+	'events_url',
+	'received_events_url'
+];
+const delRepoKeys = [
+	'forks_url',
+	'keys_url',
+	'collaborators_url',
+	'teams_url',
+	'hooks_url',
+	'issue_events_url',
+	'events_url',
+	'assignees_url',
+	'branches_url',
+	'tags_url',
+	'blobs_url',
+	'git_tags_url',
+	'git_refs_url',
+	'trees_url',
+	'statuses_url',
+	'languages_url',
+	'stargazers_url',
+	'contributors_url',
+	'subscribers_url',
+	'subscription_url',
+	'commits_url',
+	'git_commits_url',
+	'comments_url',
+	'issue_comment_url',
+	'contents_url',
+	'compare_url',
+	'merges_url',
+	'archive_url',
+	'downloads_url',
+	'issues_url',
+	'pulls_url',
+	'milestones_url',
+	'notifications_url',
+	'labels_url',
+	'releases_url',
+	'deployments_url',
+	'git_url',
+	'clone_url',
+	'svn_url',
+	'mirror_url'
+];

@@ -28,10 +28,14 @@ CREATE TABLE IF NOT EXISTS public.users (
 	gh_login TEXT NOT NULL,
     gh_access_token TEXT NOT NULL,
 	gh_avatar TEXT,
-    gh_id INT NOT NULL, -- stable id, login can change
+    gh_id INT NOT NULL UNIQUE, -- stable id, login can change
 	gh_created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    -- todo: move to own table?
+    banned BOOLEAN NOT NULL DEFAULT false,
+    ban_reason TEXT,
+    ban_timeout TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS public.packages (

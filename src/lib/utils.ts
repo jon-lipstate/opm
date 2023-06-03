@@ -56,6 +56,35 @@ export function generateSlug(str: string): string {
 		.replace(/-+$/, ''); //  trailing hyphens
 }
 
-export function intoPackageDetails() {
-	console.warn('DEPRECATED');
+export function isValidSemver(version) {
+	// ban the v, we want to store without
+	const semverRegex = new RegExp(
+		/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(\+[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*)?$/
+	);
+	return semverRegex.test(version);
+}
+/**
+ *
+ * @param urlString ASSUMES: https: hostname / user / repository
+ * @returns user, repo
+ */
+export function extractUserAndProject(urlString) {
+	try {
+		const url = new URL(urlString);
+		const pathParts = url.pathname.split('/');
+
+		// The path should look like /user/repo, so after splitting
+		// the user should be in index 1 and repo in index 2
+		if (pathParts.length < 3) {
+			throw new Error('Invalid URL');
+		}
+
+		const user = pathParts[1];
+		const repo = pathParts[2];
+
+		return { user, repo };
+	} catch (error: any) {
+		console.error(`Failed to parse URL: ${error.message}`);
+		return null;
+	}
 }

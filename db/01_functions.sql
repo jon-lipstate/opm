@@ -180,7 +180,7 @@ CREATE OR REPLACE PROCEDURE create_new_package(
     _size_kb INTEGER,
     _odin_compiler TEXT,
     _keywords TEXT[],
-    _dependency_ids INTEGER[] -- this is PKs of pk-dep table
+    _dependency_ids INTEGER[] -- this is PKs of versions table
 )
 LANGUAGE plpgsql
 AS $$
@@ -205,10 +205,58 @@ BEGIN
     -- Insert dependencies of the package
     FOREACH _dependency IN ARRAY _dependency_ids
     LOOP
-        INSERT INTO package_dependencies(package_id, version_id, dependency_package_id, dependency_version_id)
-        VALUES (_package_id, _version_id, _dependency, _dependency)
-        ON CONFLICT (package_id, version_id, dependency_package_id, dependency_version_id) DO NOTHING;
+        INSERT INTO package_dependencies(package_id, version_id, dependency_version_id)
+        VALUES (_package_id, _version_id, _dependency)
+        ON CONFLICT (package_id, version_id, dependency_version_id) DO NOTHING;
     END LOOP;
     
 END;
 $$;
+
+
+DROP FUNCTION IF EXISTS get_package_ids;
+CREATE OR REPLACE FUNCTION get_package_ids(pkgs JSONB[])
+RETURNS TABLE(
+    package_slug TEXT,
+    package_id INT
+) AS $$
+DECLARE
+    pkg JSONB;
+BEGIN
+    FOREACH pkg IN ARRAY pkgs
+    LOOP
+        RETURN QUERY
+        SELECT 
+            p.slug AS package_slug,
+            p.id AS package_id
+        FROM 
+            packages p
+        WHERE 
+            p.slug = (pkg->>'slug') AND
+            (SELECT gh_login FROM users WHERE id = p.owner) = (pkg->>'name');
+    END LOOP;
+END; $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS get_version_ids;
+CREATE OR REPLACE FUNCTION get_version_ids(pkgs JSONB[])
+RETURNS TABLE(
+    --package_slug TEXT,
+    version_id INT
+) AS $$
+DECLARE
+    pkg JSONB;
+BEGIN
+    FOREACH pkg IN ARRAY pkgs
+    LOOP
+        RETURN QUERY
+        SELECT 
+         --   p.slug AS package_slug,
+            v.id AS version_id
+        FROM 
+            packages p
+        JOIN 
+            versions v ON v.package_id = p.id
+        WHERE 
+            v.version = (pkg->>'version');
+    END LOOP;
+END; $$ LANGUAGE plpgsql;

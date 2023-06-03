@@ -109,10 +109,9 @@ CREATE TABLE package_dependencies (
     id SERIAL PRIMARY KEY,
     package_id INTEGER REFERENCES packages(id),
     version_id INTEGER REFERENCES versions(id),
-    dependency_package_id INTEGER REFERENCES packages(id),
     dependency_version_id INTEGER REFERENCES versions(id),
 	-- dependency_type TEXT -- e.g., 'dev', 'prod', etc.
-    UNIQUE(package_id, version_id, dependency_package_id, dependency_version_id)
+    UNIQUE(package_id, version_id, dependency_version_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.bookmarks (

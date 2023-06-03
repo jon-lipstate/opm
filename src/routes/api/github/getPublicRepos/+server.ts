@@ -4,19 +4,24 @@ import { getAuth } from '../../auth.js';
 
 export async function GET(event) {
 	const { login, authHeader, session } = await getAuth(event);
+	if (!login) {
+		throw error(403, 'Not Logged in');
+	}
 	try {
-		const repoRes = await axios.get(`https://api.github.com/user/repos`, authHeader);
+		const repoRes = await axios.get(`https://api.github.com/user/repos?per_page=500`, authHeader);
+		let repos = repoRes.data;
 
-		let repos = repoRes.data.filter((x) => x.language == 'Odin');
-		const otherRepos = repoRes.data.filter((x) => x.language != 'Odin');
+		// TODO: move this to client side and __dont__ await it?
+		// let repos = repoRes.data.filter((x) => x.language == 'Odin');
+		// const otherRepos = repoRes.data.filter((x) => x.language != 'Odin');
 
-		for (const repo of otherRepos) {
-			const url = `https://api.github.com/repos/${login}/${repo.name}/languages`;
-			const res = await axios.get(url, authHeader);
-			if ('Odin' in res.data) {
-				repos.push(repo);
-			}
-		}
+		// for (const repo of otherRepos) {
+		// 	const url = `https://api.github.com/repos/${login}/${repo.name}/languages`;
+		// 	const res = await axios.get(url, authHeader);
+		// 	if ('Odin' in res.data) {
+		// 		repos.push(repo);
+		// 	}
+		// }
 		let cleanedRepos = repos.map((r) => {
 			let license = { ...r.license };
 			let value = {
@@ -29,6 +34,7 @@ export async function GET(event) {
 				created_at: r.created_at,
 				updated_at: r.updated_at,
 				homepage: r.homepage,
+				language: r.language,
 				size_kb: r.size,
 				archived: r.archived,
 				license_id: license.spdx_id,
@@ -40,7 +46,10 @@ export async function GET(event) {
 		});
 
 		return json({ repos: cleanedRepos });
-	} catch (e) {
+	} catch (e: any) {
+		if (e.status == 403) {
+			throw e;
+		}
 		console.error(`>>> getPublicGists: "${session}"`);
 		throw error(503, `api: getPublicRepos, err: ${e}`);
 	}

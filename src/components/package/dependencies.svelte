@@ -79,7 +79,7 @@
 		color: var(--color-theme-1);
 	}
 	.license {
-		color: greenyellow;
+		color: var(--c-odin-blue-lighten-4);
 	}
 	.archived {
 		color: orange;

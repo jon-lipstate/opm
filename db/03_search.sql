@@ -29,8 +29,10 @@ CREATE TYPE search_result AS (
     slug TEXT,
     description TEXT,
     version TEXT,
+    license TEXT,
     last_updated TIMESTAMP,
     downloads BIGINT,
+    dependency_count BIGINT,
     keywords TEXT[]
 );
 ---
@@ -152,8 +154,10 @@ BEGIN
         p.slug,
         p.description,
         v.version,
+        v.license,
         v.created_at AS last_updated,
         (SELECT SUM(downloads) FROM versions WHERE package_id = p.id) AS downloads,
+        dc.dependency_count,
         array_agg(distinct k.keyword) AS keywords
     FROM 
         packages AS p
@@ -163,20 +167,24 @@ BEGIN
         package_keywords AS pk ON p.id = pk.package_id
     JOIN 
         keywords AS k ON pk.keyword_id = k.id
-    LEFT JOIN -- constrain to newest version id (serial)
+    LEFT JOIN 
         versions AS v ON p.id = v.package_id AND v.id = (SELECT MAX(id) FROM versions WHERE package_id = p.id)
+    LEFT JOIN 
+        (SELECT version_id, COUNT(*) AS dependency_count FROM package_dependencies GROUP BY version_id) AS dc ON v.id = dc.version_id
     WHERE 
         p.id = ANY(_package_ids) AND
-        -- p.state <> 'deleted'
         p.state IN ('active', 'archived')
     GROUP BY
         p.id,
         u.gh_login,
         v.version,
-        v.created_at;
+        v.license,
+        v.created_at,
+        dc.dependency_count;
 END;
 $$ 
 LANGUAGE plpgsql;
+
 
 
 -----

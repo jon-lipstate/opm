@@ -4,7 +4,7 @@
 	export let tags: string[];
 </script>
 
-<div>
+<div style="display:inline">
 	{#each tags as tag}
 		<button class="tag" on:click={() => goto(`/search?tag=${encodeURIComponent(tag)}`)}>
 			{tag}

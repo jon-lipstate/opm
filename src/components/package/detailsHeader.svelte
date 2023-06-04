@@ -81,7 +81,7 @@
 		cursor: pointer;
 	}
 	.license {
-		color: greenyellow;
+		color: var(--c-odin-orange-lighten-3);
 	}
 	.features {
 		margin-left: 1rem;

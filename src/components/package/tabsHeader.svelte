@@ -55,7 +55,7 @@
 		cursor: not-allowed;
 	}
 	.selected {
-		color: var(--color-theme-1);
+		color: var(--c-odin-blue-lighten-3);
 	}
 	@media (min-width: 550px) {
 		ul {

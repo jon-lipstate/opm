@@ -35,7 +35,7 @@
 
 /*https://colors.artyclick.com/color-shades-finder/?color=#EF7A30*/
 	--c-odin-orange: #ef7a30;
-	/* --c-odin-orange-darken-1: #D86D2B;
+	--c-odin-orange-darken-1: #D86D2B;
 	--c-odin-orange-darken-2: #C06126;
 	--c-odin-orange-darken-3: #A85522;
 	--c-odin-orange-darken-4: #90491D;
@@ -52,12 +52,12 @@
 	--c-odin-orange-lighten-6: #F9C8A9;
 	--c-odin-orange-lighten-7: #FAD5BE;
 	--c-odin-orange-lighten-8: #FCE3D4;
-	--c-odin-orange-lighten-9: #FDF1E9; */
+	--c-odin-orange-lighten-9: #FDF1E9;
 	
 
 	--c-odin-complementary: #C77D2D;
 	--c-odin-blue: #3882d2;
-	/* --c-odin-blue-darken-1: #3375BC;
+	--c-odin-blue-darken-1: #3375BC;
 	--c-odin-blue-darken-2: #2D68A7;
 	--c-odin-blue-darken-3: #285B92;
 	--c-odin-blue-darken-4: #224E7D;
@@ -74,7 +74,7 @@
 	--c-odin-blue-lighten-6: #A8C9ED;
 	--c-odin-blue-lighten-7: #BCD6F1;
 	--c-odin-blue-lighten-8: #D2E3F6;
-	--c-odin-blue-lighten-9: #E8F1FA; */
+	--c-odin-blue-lighten-9: #E8F1FA;
 	
 
 }
@@ -143,3 +143,10 @@ code {
     padding: 0 1rem 1rem 1rem;
     word-wrap: break-word;  
 } */
+
+.color-primary {
+	color: var(--c-odin-blue-lighten-3);
+}
+.color-secondary {
+	color: var(--c-odin-orange);
+}

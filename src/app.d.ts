@@ -11,12 +11,15 @@ declare global {
 		type SearchResult = {
 			package_id: number;
 			name: string;
+			slug: string;
 			owner: string;
 			description: string;
 			version: string;
 			last_updated: string;
 			downloads: number; // all time downloads
 			bookmarks: number;
+			license: string;
+			dependency_count: string;
 			keywords: string[];
 		};
 

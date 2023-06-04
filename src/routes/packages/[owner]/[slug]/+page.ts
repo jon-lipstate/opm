@@ -14,7 +14,7 @@ export async function load({ params, fetch, url }) {
 	});
 	if (response.ok) {
 		details = (await response.json()).pkg;
-		// console.warn(details);
+		// console.warn(details);--c-odin-blue-lighten-3
 	} else {
 		error = (await response.json()).message;
 	}

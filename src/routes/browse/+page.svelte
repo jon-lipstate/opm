@@ -27,7 +27,7 @@
 </svelte:head>
 
 <section>
-	<span>Total Packages: {count}</span>
+	<h2>Total Packages: {count}</h2>
 	{#each results as pkg (pkg.name)}
 		<SearchResult {pkg} />
 	{/each}

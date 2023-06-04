@@ -56,7 +56,7 @@
 	async function subTest() {
 		const data = {
 			name: 'regex',
-			version: '0.1.0',
+			version: '0.2.0',
 			authors: ['jon-lipstate'],
 			description: 'regex is a nfa regex engine',
 			url: 'https://github.com/jon-lipstate/odin-regex',

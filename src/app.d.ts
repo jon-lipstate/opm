@@ -16,7 +16,7 @@ declare global {
 			version: string;
 			last_updated: string;
 			downloads: number; // all time downloads
-			stars: number;
+			bookmarks: number;
 			keywords: string[];
 		};
 
@@ -27,8 +27,8 @@ declare global {
 			description: string;
 			archived: boolean;
 			keywords: string[];
-			stars: number;
-			repository: string; // http repo url
+			bookmarks: number;
+			url: string; // http repo url
 			readme: string; // markdown, html formatted
 			owner: string;
 			authors: string[]?;

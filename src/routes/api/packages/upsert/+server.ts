@@ -25,7 +25,7 @@ export async function POST(event) {
 	const description = pkg.description;
 	let readme: string = '';
 	let size_kb = 42;
-	console.warn(pkg);
+	// console.warn(pkg);
 
 	if (false) {
 		// todo: cli token path
@@ -119,36 +119,25 @@ export async function POST(event) {
 		console.warn(errors);
 		throw error(400, errors.join('\n'));
 	}
-	console.warn(`select * from create_new_package(
-		${userId},
-		${pkg.name},
-		${slug},
-		${pkg.description},
-		${42},
-		${pkg.url},
-		${pkg.version.replace('v', '')},
-		${pkg.license},
-		${size_kb},
-		${pkg.compiler ?? 'not specified'},
-		ARRAY[${pkg.keywords}],
-		ARRAY[${depVersionIds}]::INTEGER[] 
-		)`);
-	//@ts-ignore
-	const createRes = await sql`select * from create_new_package(
-			${userId},
-			${pkg.name},
-			${pkg.slug},
-			${pkg.description},
-			stuff,
-			${pkg.url},
-			${pkg.version.replace('v', '')},
-			${pkg.license},
-			${size_kb},
-			${pkg.compiler ?? 'not specified'},
-			ARRAY[${pkg.keywords}],
-			ARRAY[${depVersionIds}]::INTEGER[] 
-			)`;
-	console.warn(createRes);
+	try {
+		//@ts-ignore
+		const createRes = await sql`call upsert_full_package(
+		${userId}::INTEGER,
+		${pkg.name}::TEXT,
+		${slug}::TEXT,
+		${description}::TEXT,
+		${readme}::TEXT,
+		${pkg.url}::TEXT,
+		${pkg.version.replace('v', '')}::TEXT,
+		${pkg.license}::TEXT,
+		${size_kb}::INTEGER,
+		${pkg.compiler ?? 'not specified'}::TEXT,
+		ARRAY[${sql.array(pkg.keywords)}],
+		ARRAY[${sql.unsafe(depVersionIds.join(','))}]::INTEGER[]
+		)`;
+	} catch (e: any) {
+		console.warn('sql error:', e);
+	}
 
 	return json({ msg: 'Not Implemented' }, { status: 201 });
 	// TODO: NAME MUST BE SLUGGABLE IMPLICITLY

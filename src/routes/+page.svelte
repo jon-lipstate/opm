@@ -7,9 +7,9 @@
 	<meta name="description" content="Search Page" />
 </svelte:head>
 
-<class class="landing-search">
+<div class="landing-search">
 	<SearchBar />
-</class>
+</div>
 
 <style>
 	.landing-search {

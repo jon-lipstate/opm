@@ -13,6 +13,8 @@
 </script>
 
 <section>
+	<!-- <pre>{JSON.stringify(licenses, null, 2)}</pre>
+	<pre>{JSON.stringify(flat, null, 2)}</pre> -->
 	<!-- License Summary -->
 	<div>
 		<h2>Licenses</h2>
@@ -48,7 +50,7 @@
 						<td on:click={() => navTo(dep.owner, dep.slug)} class="link">{dep.package_name}</td>
 						<td>{dep.version}</td>
 						<td>{dep.license}</td>
-						{#if dep.archived}
+						{#if dep.state == 'archived'}
 							<td class="archived">ARCHIVED</td>
 						{:else}
 							<td>{timeAgo(dep.last_updated)}</td>

@@ -47,7 +47,7 @@
 	async function submitPackageDetails(e) {
 		e.preventDefault();
 		try {
-			const response = await axios.post('/api/packages/new', details);
+			const response = await axios.post('/api/packages/upsert', details);
 			console.log(response.data);
 		} catch (error) {
 			console.error('Error submitting package details', error, details);
@@ -71,7 +71,7 @@
 				'odie/async-runtime': '1.2.3'
 			}
 		};
-		const response = await axios.post('/api/packages/new', data);
+		const response = await axios.post('/api/packages/upsert', data);
 		console.log(response.data);
 	}
 </script>

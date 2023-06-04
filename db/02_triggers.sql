@@ -4,7 +4,7 @@ DROP FUNCTION IF EXISTS public.set_updated_at CASCADE;
 DROP TRIGGER IF EXISTS tsvectorupdate ON public.packages;
 DROP TRIGGER IF EXISTS security_issues_inserted ON public.security_issues;
 DROP TRIGGER IF EXISTS check_reserved_name_trigger ON public.packages;
-
+DROP TRIGGER IF EXISTS delete_unused_keywords ON public.package_keywords CASCADE;
 -------------
 CREATE OR REPLACE FUNCTION packages_search_trigger() RETURNS trigger AS $$
 begin
@@ -60,3 +60,19 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER check_reserved_name_trigger 
 BEFORE INSERT OR UPDATE ON packages
 FOR EACH ROW EXECUTE FUNCTION verify_package_name();
+
+
+CREATE OR REPLACE FUNCTION delete_unused_keywords() RETURNS TRIGGER AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM package_keywords WHERE keyword_id = OLD.keyword_id
+    ) THEN
+        DELETE FROM keywords WHERE id = OLD.keyword_id;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER delete_unused_keywords_trigger
+AFTER DELETE ON package_keywords
+FOR EACH ROW EXECUTE FUNCTION delete_unused_keywords();

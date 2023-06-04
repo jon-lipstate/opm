@@ -19,8 +19,8 @@ export async function POST(event) {
 		if (res.status != 200) {
 			throw error(res.status, res.statusText);
 		}
-		data = '```odin\n' + res.data + '\n```';
-		console.info('TODO: REMOVE ODIN TAG WRAPPER');
+		// data = '```odin\n' + res.data + '\n```';
+		data = res.data;
 	} else {
 		throw error(400, "readme requires 'data' or 'url' to process.");
 	}

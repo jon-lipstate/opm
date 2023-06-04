@@ -15,6 +15,7 @@ export async function POST(event) {
   		`;
 		return json(res);
 	} catch (err) {
+		console.error('SEARCH');
 		console.error('SQL Search Error\n', err);
 		throw error(500, `SQL Search Error:, ${err}`);
 	}

@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS public.scopes CASCADE;
 DROP TABLE IF EXISTS public.user_scopes CASCADE;
 DROP TABLE IF EXISTS public.security_issues CASCADE;
 DROP TABLE IF EXISTS public.background_jobs CASCADE;
-DROP EXTENSION pgcrypto;
+DROP EXTENSION IF EXISTS pgcrypto;
 --
 CREATE TYPE package_state AS ENUM ('unpublished','active', 'archived','moderated','deleted');
 CREATE TYPE severity AS ENUM ('low','medium', 'high', 'critical');
@@ -58,7 +58,7 @@ CREATE INDEX packages_tsv_idx ON packages USING gin(tsv);
 
 
 CREATE TABLE IF NOT EXISTS public.package_authors (
-    package_id INTEGER NOT NULL REFERENCES packages(id),
+    package_id INTEGER NOT NULL REFERENCES packages(id) ON DELETE CASCADE,
     author_id INTEGER NOT NULL REFERENCES users(id),
 	is_admin BOOLEAN DEFAULT false,
     PRIMARY KEY(package_id, author_id)
@@ -66,24 +66,23 @@ CREATE TABLE IF NOT EXISTS public.package_authors (
 
 CREATE TABLE IF NOT EXISTS public.versions (
     id SERIAL PRIMARY KEY,
-	package_id INTEGER REFERENCES packages(id),
-	version TEXT NOT NULL,
-    --updated_at ?? i dont think so??
-	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL,
-	license TEXT NOT NULL,
-	size_kb INTEGER,
-	published_by INTEGER REFERENCES users(id),
-	insecure BOOLEAN DEFAULT false, -- cached flag of security_issue entry, updated on a trigger
-	compiler TEXT NOT NULL,
-	downloads INTEGER DEFAULT 0
-	-- checksum CHAR(64) NOT NULL,
-	-- commit_hash TEXT NOT NULL,
+    package_id INTEGER REFERENCES packages(id) ON DELETE CASCADE,
+    version TEXT NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL,
+    license TEXT NOT NULL,
+    size_kb INTEGER,
+    published_by INTEGER REFERENCES users(id),
+    insecure BOOLEAN DEFAULT false, 
+    compiler TEXT NOT NULL,
+    downloads INTEGER DEFAULT 0,
+    UNIQUE(version,package_id)
 );
+
 
 -- idk if this is a keeper, only really care to point users to more info
 CREATE TABLE security_issues (
     id SERIAL PRIMARY KEY,
-    version_id INTEGER REFERENCES versions(id),
+    version_id INTEGER REFERENCES versions(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     link TEXT, -- http-url
@@ -100,23 +99,21 @@ CREATE TABLE IF NOT EXISTS public.keywords (
 );
 
 CREATE TABLE IF NOT EXISTS public.package_keywords (
-    package_id INTEGER NOT NULL REFERENCES packages(id),
-    keyword_id INTEGER NOT NULL REFERENCES keywords(id),
+    package_id INTEGER NOT NULL REFERENCES packages(id) ON DELETE CASCADE,
+    keyword_id INTEGER NOT NULL REFERENCES keywords(id) ON DELETE CASCADE, -- TBD if this cacsade should be here? 
     PRIMARY KEY(package_id, keyword_id)
 );
 
 CREATE TABLE package_dependencies (
-    id SERIAL PRIMARY KEY,
-    package_id INTEGER REFERENCES packages(id),
-    version_id INTEGER REFERENCES versions(id),
-    dependency_version_id INTEGER REFERENCES versions(id),
-	-- dependency_type TEXT -- e.g., 'dev', 'prod', etc.
-    UNIQUE(package_id, version_id, dependency_version_id)
+    --id SERIAL PRIMARY KEY,
+    version_id INTEGER REFERENCES versions(id) ON DELETE CASCADE,
+    depends_on_version_id INTEGER REFERENCES versions(id) ON DELETE CASCADE,
+    UNIQUE(version_id, depends_on_version_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.bookmarks (
     user_id INTEGER NOT NULL REFERENCES users(id),
-    package_id INTEGER NOT NULL REFERENCES packages(id),
+    package_id INTEGER NOT NULL REFERENCES packages(id) ON DELETE CASCADE,
     PRIMARY KEY(user_id, package_id)
 );
 
@@ -183,7 +180,7 @@ CREATE TABLE IF NOT EXISTS public.scopes (
 
 CREATE TABLE IF NOT EXISTS public.user_scopes (
     user_id INTEGER NOT NULL REFERENCES users(id),
-    scope_id INTEGER NOT NULL REFERENCES scopes(id),
+    scope_id INTEGER NOT NULL REFERENCES scopes(id) ON DELETE CASCADE,
     granted_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     PRIMARY KEY (user_id, scope_id)
 );

@@ -17,9 +17,11 @@ export async function POST(event) {
 			pkg.versions = version ?? [];
 			return json({ pkg });
 		} else {
+			console.error('PKG', pkg);
 			throw error(404, `Package not Found: ${owner}/${slug}`);
 		}
 	} catch (err) {
+		console.error('API/DETAILS');
 		console.error('SQL Search Error\n', err);
 		//@ts-ignore
 		if (err.status == 404) throw err;

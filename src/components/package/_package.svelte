@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import DetailsHeader from '$components/package/detailsHeader.svelte';
 	import TabsHeader from '$components/package/tabsHeader.svelte';
 	import Readme from '$components/package/readme.svelte';
@@ -14,7 +13,7 @@
 	let selectedTab: number = 0;
 	$: details, (selectedTab = 0);
 
-	let readmeData = 'no readme available';
+	$: readme = details.readme ?? 'No Readme Provided';
 	function handleTabSelect(event: CustomEvent) {
 		selectedTab = event.detail;
 	}
@@ -30,7 +29,7 @@
 	<TabsHeader
 		tabs={[
 			{ name: 'Readme' },
-			{ name: 'Signatures' },
+			{ name: 'Signatures', disabled: true },
 			{ name: `Dependencies (${depCount})`, disabled: depCount == 0 },
 			{ name: `Versions (${details.versions.length})` }
 		]}
@@ -38,8 +37,7 @@
 		on:select={handleTabSelect}
 	/>
 	{#if selectedTab === 0}
-		<!-- todo: sanitize -->
-		<div>{@html readmeData}</div>
+		<Readme {readme} />
 	{:else if selectedTab === 1}
 		<Signatures />
 	{:else if selectedTab === 2}

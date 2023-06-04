@@ -14,6 +14,7 @@ export async function load({ params, fetch, url }) {
 	});
 	if (response.ok) {
 		details = (await response.json()).pkg;
+		// console.warn(details);
 	} else {
 		error = (await response.json()).message;
 	}

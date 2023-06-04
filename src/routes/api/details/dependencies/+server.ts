@@ -30,6 +30,7 @@ export async function POST(event) {
         `;
 		return json({ flat, licenses: licenseSummary });
 	} catch (err) {
+		console.error('API/DEPENDENCIES/DETAILS');
 		console.error('SQL Search Error\n', err);
 		//@ts-ignore
 		if (err.status == 404) throw err;

@@ -1,23 +1,3 @@
-DELETE FROM public.package_dependencies CASCADE;
-DELETE FROM public.stars CASCADE;
-DELETE FROM public.package_keywords CASCADE;
-DELETE FROM public.keywords CASCADE;
-DELETE FROM public.versions CASCADE;
-DELETE FROM public.users CASCADE;
-DELETE FROM public.packages CASCADE;
-DELETE FROM public.actions;
-DELETE FROM public.api_tokens;
-DELETE FROM public.create_limits;
-DELETE FROM public.package_authors;
-DELETE FROM public.reserved_names;
-
-ALTER SEQUENCE public.package_dependencies_id_seq RESTART WITH 1;
-ALTER SEQUENCE public.api_tokens_id_seq RESTART WITH 1;
-ALTER SEQUENCE public.packages_id_seq RESTART WITH 1;
-ALTER SEQUENCE public.users_id_seq RESTART WITH 1;
-ALTER SEQUENCE public.versions_id_seq RESTART WITH 1;
-ALTER SEQUENCE public.keywords_id_seq RESTART WITH 1;
-
 INSERT INTO scopes(name) VALUES
 ('publish_own'),('update_own'),('delete_own'),('publish_any'),
 ('update_any'),('delete_any'),('comment'),('vote'),

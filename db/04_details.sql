@@ -1,5 +1,4 @@
 DROP FUNCTION IF EXISTS public.get_all_dependencies CASCADE;
-DROP FUNCTION IF EXISTS public.get_insecure_versions CASCADE;
 DROP FUNCTION IF EXISTS public.get_all_dependency_licenses CASCADE;
 DROP FUNCTION IF EXISTS public.get_version_details CASCADE;
 DROP FUNCTION IF EXISTS public.get_dependencies_flat CASCADE;
@@ -7,75 +6,30 @@ DROP FUNCTION IF EXISTS public.get_package_details CASCADE;
 
 --------
 CREATE OR REPLACE FUNCTION get_all_dependencies(_version_id INTEGER)
-RETURNS TABLE(
-    package_id INTEGER,
-    version_id INTEGER
-)
+RETURNS TABLE(depends_on_version_id INTEGER)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     WITH RECURSIVE dependency_tree AS (
         SELECT 
-            pd.dependency_package_id AS package_id,
-            pd.dependency_version_id AS version_id
+            pd.depends_on_version_id AS depends_on_version_id
         FROM 
             package_dependencies AS pd
         WHERE 
             pd.version_id = _version_id
         UNION 
         SELECT 
-            pd.dependency_package_id,
-            pd.dependency_version_id
+            pd.depends_on_version_id
         FROM 
             package_dependencies AS pd
         INNER JOIN 
-            dependency_tree AS dt ON pd.version_id = dt.version_id
+            dependency_tree AS dt ON pd.version_id = dt.depends_on_version_id
     )
     SELECT DISTINCT
-        dt.package_id,
-        dt.version_id
+        dt.depends_on_version_id
     FROM 
         dependency_tree AS dt;
-END;
-$$;
---------
-
-CREATE OR REPLACE FUNCTION get_insecure_versions()
-RETURNS TABLE(
-    package_id INTEGER,
-    version_id INTEGER
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    WITH all_dependencies AS (
-        SELECT
-            v.package_id,
-            v.id AS version_id,
-            (get_all_dependencies(v.id)).package_id AS dependency_package_id,
-            (get_all_dependencies(v.id)).version_id AS dependency_version_id
-        FROM 
-            versions AS v
-    )
-    SELECT DISTINCT
-        ad.package_id,
-        ad.version_id
-    FROM 
-        all_dependencies AS ad
-    INNER JOIN 
-        versions AS v ON ad.dependency_version_id = v.id
-    WHERE 
-        v.insecure = true
-    UNION 
-    SELECT 
-        v.package_id,
-        v.id AS version_id
-    FROM
-        versions v
-    WHERE 
-        v.insecure = true;
 END;
 $$;
 
@@ -91,7 +45,7 @@ BEGIN
     RETURN QUERY
     WITH all_dependencies AS (
         SELECT 
-            (get_all_dependencies(version_id)).*
+            get_all_dependencies(version_id) as version_id
     )
     SELECT 
         v.license,
@@ -101,11 +55,12 @@ BEGIN
     INNER JOIN 
         versions AS v ON ad.version_id = v.id
     INNER JOIN
-        packages AS p ON ad.package_id = p.id
+        packages AS p ON v.package_id = p.id
     GROUP BY 
         v.license;
 END;
 $$;
+
 
 -----------------------------------------------------------
 
@@ -151,7 +106,7 @@ BEGIN
     INNER JOIN
         users u ON p.owner = u.id
     WHERE 
-        v.id != _version_id AND v.id = ANY(SELECT version_id FROM all_dependencies);
+        v.id != _version_id AND v.id = ANY(SELECT depends_on_version_id FROM all_dependencies);
 END;
 $$;
 
@@ -186,8 +141,9 @@ BEGIN
         v.license,
         EXISTS(
             SELECT 1
-            FROM get_insecure_versions() giv
-            WHERE giv.package_id = v.package_id AND giv.version_id = v.id
+            FROM package_dependencies pd
+            INNER JOIN versions dep_v ON pd.depends_on_version_id = dep_v.id
+            WHERE pd.version_id = v.id AND dep_v.insecure = true
         ) AS has_insecure_dependency
     FROM 
         versions AS v
@@ -196,6 +152,7 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
 
 -----------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_package_details(_package_id INTEGER)
@@ -206,7 +163,7 @@ RETURNS TABLE(
     description TEXT,
     state package_state,
     keywords TEXT[],
-    stars BIGINT,
+    bookmarks BIGINT,
     url TEXT,
     readme TEXT,
     owner TEXT,
@@ -222,7 +179,7 @@ BEGIN
         p.description,
         p.state,
         (SELECT array_agg(k.keyword) FROM package_keywords pk INNER JOIN keywords k ON pk.keyword_id = k.id WHERE pk.package_id = _package_id) AS keywords,
-        (SELECT COUNT(*) FROM stars s WHERE s.package_id = _package_id) AS stars,
+        (SELECT COUNT(*) FROM bookmarks bm WHERE bm.package_id = _package_id) AS bookmarks,
         p.url,
         p.readme,
         u.gh_login AS owner,
@@ -256,9 +213,11 @@ BEGIN
     FROM 
         packages p
     INNER JOIN
-        package_dependencies pd ON p.id = pd.package_id
+        versions v ON p.id = v.package_id
+    INNER JOIN
+        package_dependencies pd ON v.id = pd.version_id
     WHERE 
-        pd.dependency_package_id = _package_id;
+        pd.depends_on_version_id IN (SELECT id FROM versions WHERE package_id = _package_id);
 END;
 $$
 LANGUAGE plpgsql;

@@ -1,8 +1,8 @@
 <script>
 	import axios from 'axios';
-	import './ayu-mirage.css'; // or any other style you like
+	import '$lib/ayu-mirage.css'; // or any other style you like
 	import { afterUpdate, onMount } from 'svelte';
-	import odin from './odin-hl.js';
+	import odin from '$lib/odin-hl.js';
 	import hljs from 'highlight.js/lib/core';
 	hljs.registerLanguage('odin', odin);
 

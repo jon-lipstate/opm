@@ -16,6 +16,7 @@ pre,
 code {
 	display: block;
 	padding: 1rem;
+	white-space: pre-wrap;
 }
 
 .hljs {

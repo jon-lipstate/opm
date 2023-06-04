@@ -16,7 +16,7 @@
 <header class="details-header">
 	<div class="row">
 		<h1>
-			<a href={details.repository}>{details.name}</a>
+			<a href={details.url}>{details.name}</a>
 		</h1>
 		{#if !version.insecure && version.has_insecure_dependency}
 			<span class="insecure-warning">VULNERABLE DEPENDENCIES</span>

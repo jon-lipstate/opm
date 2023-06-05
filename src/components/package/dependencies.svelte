@@ -58,7 +58,7 @@
 						{#if dep.insecure}
 							<td class="insecure-warning">INSECURE</td>
 						{:else}
-							<td />
+							<td>No Reports</td>
 						{/if}
 					</tr>
 				{/each}
@@ -104,5 +104,54 @@
 	li {
 		margin: 0;
 		list-style-type: none;
+	}
+
+	@media (max-width: 650px) {
+		thead {
+			display: none;
+		}
+		table {
+			width: 100%;
+			table-layout: auto;
+			border-spacing: 1rem 0;
+		}
+
+		tbody tr {
+			/* Display rows as blocks for small screens */
+			display: block;
+			padding: 1rem;
+			margin-bottom: 1rem;
+			border: 1px solid #ccc;
+			border-radius: 10px;
+			box-shadow: 2px 2px 6px 0 rgba(0, 0, 0, 0.2);
+		}
+
+		td {
+			display: block;
+			font-size: 1.2rem;
+
+			padding: 0.1rem;
+		}
+
+		td:before {
+			content: attr(data-label);
+			float: left;
+			color: var(--c-odin-blue-lighten-4);
+			text-transform: uppercase;
+			margin-right: 0.2rem;
+		}
+
+		td:nth-of-type(2):before {
+			content: 'Version :: ';
+		}
+		td:nth-of-type(3):before {
+			content: 'License :: ';
+		}
+		td:nth-of-type(4):before {
+			content: 'Updated :: ';
+		}
+		td:nth-of-type(5):before {
+			content: 'Security :: ';
+		}
 	}
 </style>

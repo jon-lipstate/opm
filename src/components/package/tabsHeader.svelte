@@ -57,7 +57,7 @@
 	.selected {
 		color: var(--c-odin-blue-lighten-3);
 	}
-	@media (min-width: 550px) {
+	@media (min-width: 650px) {
 		ul {
 			flex-direction: row;
 		}

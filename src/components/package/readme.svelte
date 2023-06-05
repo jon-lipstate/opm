@@ -16,6 +16,13 @@
 	});
 </script>
 
-<section style="width:100%; overflow:none;">
+<section>
 	{@html readme}
 </section>
+
+<style>
+	section {
+		max-width: 90vw;
+		overflow: auto;
+	}
+</style>

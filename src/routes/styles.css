@@ -143,6 +143,10 @@ code {
     padding: 0 1rem 1rem 1rem;
     word-wrap: break-word;  
 } */
+code {
+    word-wrap: break-word;  
+	white-space: pre-wrap;
+}
 
 .color-primary {
 	color: var(--c-odin-blue-lighten-3);

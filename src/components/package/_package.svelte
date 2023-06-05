@@ -76,6 +76,7 @@
 
 <style>
 	table {
+		max-width: 90vw;
 		width: 100%;
 		text-align: center;
 	}

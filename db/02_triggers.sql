@@ -9,7 +9,7 @@ DROP TRIGGER IF EXISTS delete_unused_keywords ON public.package_keywords CASCADE
 CREATE OR REPLACE FUNCTION packages_search_trigger() RETURNS trigger AS $$
 begin
   new.TSV :=
-    setweight(to_tsvector(coalesce(new.name,'')), 'A') ||
+    setweight(to_tsvector(coalesce(new.repo_name,'')), 'A') ||
     setweight(to_tsvector(coalesce(new.description,'')), 'B');
   return new;
 end
@@ -50,12 +50,14 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.verify_package_name() RETURNS TRIGGER AS $$
 BEGIN
-    IF EXISTS(SELECT 1 FROM reserved_names WHERE name = NEW.name) THEN
-        RAISE EXCEPTION 'Package name is reserved.';
+    IF EXISTS(SELECT 1 FROM packages WHERE CONCAT(host_name, owner_name, repo_name) = CONCAT(NEW.host_name, NEW.owner_name, NEW.repo_name)) OR
+       EXISTS(SELECT 1 FROM reserved_names WHERE name = NEW.repo_name) THEN
+        RAISE EXCEPTION 'Package name % is reserved.', NEW.repo_name;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE TRIGGER check_reserved_name_trigger 
 BEFORE INSERT OR UPDATE ON packages

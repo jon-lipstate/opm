@@ -7,13 +7,14 @@
 	import { timeAgo } from '$lib/utils';
 	//
 	export let details: App.PackageDetails;
+	export let readme;
 	export let versionIndex;
 	export let flat;
 	export let licenses;
 	let selectedTab: number = 0;
 	$: details, (selectedTab = 0);
+	$: readme = readme ?? 'No Readme Provided';
 
-	$: readme = details.readme ?? 'No Readme Provided';
 	function handleTabSelect(event: CustomEvent) {
 		selectedTab = event.detail;
 	}
@@ -21,7 +22,7 @@
 </script>
 
 <svelte:head>
-	<title>{details.name} | OPM</title>
+	<title>{details.repo_name} | OPM</title>
 </svelte:head>
 
 <main>
@@ -59,7 +60,11 @@
 			<tbody>
 				{#each details.versions as info}
 					<tr>
-						<td><a href="/packages/{details.owner}/{details.slug}?version={info.version}">{info.version}</a></td>
+						<td
+							><a href="/{details.host_name}/{details.owner_name}/{details.repo_name}?version={info.version}"
+								>{info.version}</a
+							></td
+						>
 						<td>{timeAgo(info.createdat)}</td>
 						<td>{info.size_kb}</td>
 						<td>{info.dependency_count}</td>

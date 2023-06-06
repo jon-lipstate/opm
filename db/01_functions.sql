@@ -1,16 +1,11 @@
-DROP FUNCTION IF EXISTS public.insert_new_package CASCADE;
-DROP FUNCTION IF EXISTS public.insert_new_version CASCADE;
-DROP FUNCTION IF EXISTS public.insert_keywords CASCADE;
-DROP PROCEDURE IF EXISTS public.create_new_package CASCADE;
-DROP FUNCTION IF EXISTS public.get_package_ids CASCADE;
-DROP FUNCTION IF EXISTS public.get_version_ids CASCADE;
-
+-----------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.upsert_package CASCADE;
 CREATE OR REPLACE FUNCTION upsert_package(
     _owner_id INTEGER,
-    _name TEXT, 
-    _slug TEXT, 
+    _host_name TEXT,
+    _owner_name TEXT,
+    _repo_name TEXT, 
     _description TEXT, 
-    _readme TEXT, 
     _url TEXT,
     _state package_state
 )
@@ -19,49 +14,53 @@ LANGUAGE plpgsql AS $$
 DECLARE 
     _package_id INTEGER;
 BEGIN
-    INSERT INTO packages(owner,name, slug, description, readme, url, state)
-    VALUES (_owner_id, _name, _slug, _description, _readme, _url, _state)
-    ON CONFLICT (owner, name) 
+    INSERT INTO packages(owner_id, host_name, owner_name, repo_name, description, url, state)
+    VALUES (_owner_id, _host_name, _owner_name, _repo_name, _description, _url, _state)
+    ON CONFLICT (host_name, owner_name, repo_name) 
     DO UPDATE SET 
-        --slug = EXCLUDED.slug,  --QUESTION: ALLOW RENAMES ???
         description = EXCLUDED.description, 
-        readme = EXCLUDED.readme, 
-        --url = EXCLUDED.url,  --QUESTION: ALLOW RENAMES ???
+        --url = EXCLUDED.url, 
         state = EXCLUDED.state
     RETURNING id INTO _package_id;
 
     RETURN _package_id;
 END;
 $$;
-
+-----------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.upsert_version CASCADE;
 CREATE OR REPLACE FUNCTION upsert_version(
     _package_id INTEGER,
     _version TEXT,
     _license TEXT,
     _size_kb INTEGER,
     _published_by INTEGER,
-    _compiler TEXT
+    _compiler TEXT,
+    _commit_hash TEXT,
+    _readme TEXT
 )
 RETURNS INTEGER
 LANGUAGE plpgsql AS $$
 DECLARE 
     _version_id INTEGER;
 BEGIN
-    INSERT INTO versions(package_id, version, license, size_kb, published_by, compiler)
-    VALUES (_package_id, _version, _license, _size_kb, _published_by, _compiler)
+    INSERT INTO versions(package_id, version, license, size_kb, published_by, compiler, commit_hash, readme)
+    VALUES (_package_id, _version, _license, _size_kb, _published_by, _compiler, _commit_hash, _readme)
     ON CONFLICT (package_id, version)
     DO UPDATE SET
         license = EXCLUDED.license,
         size_kb = EXCLUDED.size_kb,
         published_by = EXCLUDED.published_by,
-        compiler = EXCLUDED.compiler
+        compiler = EXCLUDED.compiler,
+        commit_hash = EXCLUDED.commit_hash,
+        readme = EXCLUDED.readme
     RETURNING id INTO _version_id;
 
     RETURN _version_id;
 END;
 $$;
 
------
+-----------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.upsert_keywords CASCADE;
 CREATE OR REPLACE FUNCTION upsert_keywords(
     _package_id INTEGER,
     _keywords TEXT[]
@@ -93,19 +92,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
---
--- 
+-----------------------------------------------------------------------------
+DROP PROCEDURE IF EXISTS public.upsert_full_package CASCADE;
 CREATE OR REPLACE PROCEDURE upsert_full_package(
     _owner_id INTEGER,
-    _name TEXT, 
-    _slug TEXT, 
-    _description TEXT, 
-    _readme TEXT, 
-    _url TEXT, 
+    _host_name TEXT,
+    _owner_name TEXT,
+    _repo_name TEXT,
+    _description TEXT,
+    _readme TEXT,
+    _url TEXT,
     _version TEXT,
     _license TEXT,
     _size_kb INTEGER,
     _odin_compiler TEXT,
+    _commit_hash TEXT,
     _keywords TEXT[],
     _dependency_ids INTEGER[] -- this is PKs of versions table
 )
@@ -117,10 +118,10 @@ DECLARE
 	_dependency_id INTEGER;
 BEGIN
     -- Call the function to insert a new package or update an existing one
-    _package_id := upsert_package(_owner_id, _name, _slug, _description, _readme, _url, 'active'::package_state);
+    _package_id := upsert_package(_owner_id, _host_name, _owner_name, _repo_name, _description, _url, 'active'::package_state);
 
     -- Insert into versions table or update an existing one
-    _version_id := upsert_version(_package_id, _version, _license, _size_kb, _owner_id, _odin_compiler);
+    _version_id := upsert_version(_package_id, _version, _license, _size_kb, _owner_id, _odin_compiler, _commit_hash,_readme);
 
     -- Insert keywords and their relation to the package or update existing ones
     PERFORM upsert_keywords(_package_id, _keywords);
@@ -128,22 +129,19 @@ BEGIN
     -- Insert dependencies of the package
     FOREACH _dependency_id IN ARRAY _dependency_ids
     LOOP
-        INSERT INTO package_dependencies(version_id, depends_on_version_id)
+        INSERT INTO package_dependencies(version_id, depends_on_id)
         VALUES (_version_id, _dependency_id)
-        ON CONFLICT ( version_id, depends_on_version_id) DO NOTHING;
-    END LOOP;    
+        ON CONFLICT ( version_id, depends_on_id) DO NOTHING;
+    END LOOP;
 END;
 $$;
 
-
-
-
 -------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.get_package_ids CASCADE;
 CREATE OR REPLACE FUNCTION get_package_ids(pkgs JSONB[])
 RETURNS TABLE(
-    package_slug TEXT,
     package_id INT
 ) AS $$
 DECLARE
@@ -153,19 +151,20 @@ BEGIN
     LOOP
         RETURN QUERY
         SELECT 
-            p.slug AS package_slug,
             p.id AS package_id
         FROM 
             packages p
         WHERE 
-            p.slug = (pkg->>'slug') AND
-            (SELECT gh_login FROM users WHERE id = p.owner) = (pkg->>'name');
+            p.host_name = (pkg->>'host_name') AND
+            p.owner_name = (pkg->>'owner_name') AND
+            p.repo_name = (pkg->>'repo_name');
     END LOOP;
 END; $$ LANGUAGE plpgsql;
 
+-----------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.get_version_ids CASCADE;
 CREATE OR REPLACE FUNCTION get_version_ids(pkgs JSONB[])
 RETURNS TABLE(
-    --package_slug TEXT,
     version_id INT
 ) AS $$
 DECLARE
@@ -175,13 +174,11 @@ BEGIN
     LOOP
         RETURN QUERY
         SELECT 
-         --   p.slug AS package_slug,
             v.id AS version_id
         FROM 
-            packages p
-        JOIN 
-            versions v ON v.package_id = p.id
+            versions v
         WHERE 
+            v.package_id = (pkg->>'id')::INTEGER AND
             v.version = (pkg->>'version');
     END LOOP;
 END; $$ LANGUAGE plpgsql;

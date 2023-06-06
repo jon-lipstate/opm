@@ -15,15 +15,18 @@
 
 <header class="details-header">
 	<div class="row">
-		<h1>
-			<a href={details.url}>{details.name}</a>
-		</h1>
+		<div>
+			<h1 style="display:inline">
+				<a href={details.url}>{details.repo_name}</a>
+			</h1>
+			<span>{details.host_name}/{details.owner_name}/{details.repo_name}</span>
+		</div>
 		{#if !version.insecure && version.has_insecure_dependency}
 			<span class="insecure-warning">VULNERABLE DEPENDENCIES</span>
 		{:else if version.insecure}
 			<span class="insecure-warning">REPORTED VULNERABILITIES</span>
 		{/if}
-		{#if details.archived}
+		{#if details.state == 'archived'}
 			<span class="archived">ARCHIVED</span>
 		{/if}
 		<div class="features">

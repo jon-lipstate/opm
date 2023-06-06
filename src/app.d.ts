@@ -10,9 +10,9 @@ declare global {
 
 		type SearchResult = {
 			package_id: number;
-			name: string;
-			slug: string;
-			owner: string;
+			host_name: string;
+			owner_name: string;
+			repo_name: string;
 			description: string;
 			version: string;
 			last_updated: string;
@@ -25,18 +25,17 @@ declare global {
 
 		type PackageDetails = {
 			id: number;
-			name: string;
-			slug: string;
+			host_name: string;
+			owner_name: string;
+			repo_name: string;
 			description: string;
-			archived: boolean;
+			state: string;
 			keywords: string[];
 			bookmarks: number;
 			url: string; // http repo url
-			readme: string; // markdown, html formatted
-			owner: string;
 			authors: string[]?;
 			versions: VersionDetails[]; // appended by seperate query
-			usedBy: string[]?; // appended by seperate query
+			// usedBy: string[]?; // appended by seperate query
 		};
 		type VersionDetails = {
 			id: number;
@@ -48,6 +47,8 @@ declare global {
 			compiler: string; // eg DEV-05-23
 			license: string;
 			has_insecure_dependency: boolean;
+			commit_hash: string;
+			// readme: string;
 		};
 		type ModPkg = {
 			name: string;

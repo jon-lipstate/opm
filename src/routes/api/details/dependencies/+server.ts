@@ -6,14 +6,14 @@ export type LicenseSummary = {
 	packages: string[];
 };
 export type FlatDependencies = {
-	owner: string;
-	slug: string;
-	package_name: string;
+	host_name: string;
+	owner_name: string;
+	repo_name: string;
 	version: string;
 	license: string;
 	last_updated: string;
 	state: string;
-	insecure: string;
+	insecure: boolean;
 };
 
 export async function POST(event) {

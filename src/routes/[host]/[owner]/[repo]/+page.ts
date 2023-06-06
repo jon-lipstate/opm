@@ -1,6 +1,7 @@
 export async function load({ params, fetch, url }) {
 	let owner = params.owner;
-	let slug = params.slug;
+	let repo = params.repo;
+	let host = params.host;
 
 	let flat;
 	let licenses;
@@ -10,7 +11,7 @@ export async function load({ params, fetch, url }) {
 	let response = await fetch(`/api/details`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ owner, slug })
+		body: JSON.stringify({ host, owner, repo })
 	});
 	if (response.ok) {
 		details = (await response.json()).pkg;
@@ -35,6 +36,12 @@ export async function load({ params, fetch, url }) {
 		}
 	}
 	const versionId = details.versions[versionIndex].id;
+	let readmeRes = await fetch(`/api/details/readme`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ versionId })
+	});
+	let readme = await readmeRes.json();
 	response = await fetch(`/api/details/dependencies`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
@@ -47,5 +54,5 @@ export async function load({ params, fetch, url }) {
 	} else {
 		error += ' ' + (await response.json()).message;
 	}
-	return { details, flat, licenses, error, versionIndex };
+	return { details, flat, licenses, error, versionIndex, readme };
 }

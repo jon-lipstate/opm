@@ -1,33 +1,31 @@
 DROP FUNCTION IF EXISTS public.get_all_dependencies CASCADE;
 DROP FUNCTION IF EXISTS public.get_all_dependency_licenses CASCADE;
-DROP FUNCTION IF EXISTS public.get_version_details CASCADE;
-DROP FUNCTION IF EXISTS public.get_dependencies_flat CASCADE;
 DROP FUNCTION IF EXISTS public.get_package_details CASCADE;
 
 --------
 CREATE OR REPLACE FUNCTION get_all_dependencies(_version_id INTEGER)
-RETURNS TABLE(depends_on_version_id INTEGER)
+RETURNS TABLE(depends_on_id INTEGER)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     WITH RECURSIVE dependency_tree AS (
         SELECT 
-            pd.depends_on_version_id AS depends_on_version_id
+            pd.depends_on_id AS depends_on_id
         FROM 
             package_dependencies AS pd
         WHERE 
             pd.version_id = _version_id
         UNION 
         SELECT 
-            pd.depends_on_version_id
+            pd.depends_on_id
         FROM 
             package_dependencies AS pd
         INNER JOIN 
-            dependency_tree AS dt ON pd.version_id = dt.depends_on_version_id
+            dependency_tree AS dt ON pd.version_id = dt.depends_on_id
     )
     SELECT DISTINCT
-        dt.depends_on_version_id
+        dt.depends_on_id
     FROM 
         dependency_tree AS dt;
 END;
@@ -49,7 +47,7 @@ BEGIN
     )
     SELECT 
         v.license,
-        array_agg(distinct p.name)
+        array_agg(distinct CONCAT(p.host_name, '/', p.owner_name, '/', p.repo_name))
     FROM 
         all_dependencies AS ad
     INNER JOIN 
@@ -62,13 +60,14 @@ END;
 $$;
 
 
------------------------------------------------------------
 
+-----------------------------------------------------------
+DROP FUNCTION IF EXISTS public.get_dependencies_flat CASCADE;
 CREATE OR REPLACE FUNCTION get_dependencies_flat(_version_id INTEGER)
 RETURNS TABLE(
-    owner TEXT,
-    slug TEXT,
-    package_name TEXT,
+    host_name TEXT,
+    owner_name TEXT,
+    repo_name TEXT,
     version TEXT,
     license TEXT,
     last_updated TIMESTAMP,
@@ -91,9 +90,9 @@ BEGIN
         SELECT * FROM get_all_dependencies(_version_id)
     )
     SELECT 
-        u.gh_login AS owner,
-        p.slug,
-        p.name AS package_name,
+        p.host_name,
+        p.owner_name,
+        p.repo_name,
         v.version,
         v.license,
         v.created_at AS last_updated,
@@ -103,16 +102,16 @@ BEGIN
         packages p
     INNER JOIN
         versions v ON p.id = v.package_id
-    INNER JOIN
-        users u ON p.owner = u.id
     WHERE 
-        v.id != _version_id AND v.id = ANY(SELECT depends_on_version_id FROM all_dependencies);
+        v.id != _version_id AND v.id = ANY(SELECT depends_on_id FROM all_dependencies);
 END;
 $$;
 
 
 -------------------------------------------------------------------------------------------
-
+-- NOTE: reamde will get heavy when many versions exist
+-- TODO: refactor to be lighter?
+DROP FUNCTION IF EXISTS public.get_version_details CASCADE;
 CREATE OR REPLACE FUNCTION get_version_details(_package_id INTEGER)
 RETURNS TABLE(
     id INTEGER,
@@ -120,9 +119,11 @@ RETURNS TABLE(
     insecure BOOLEAN,
     createdAt TIMESTAMP,
     size_kb INTEGER,
-    dependency_count BIGINT,
+    dependency_count INTEGER,
     compiler TEXT,
     license TEXT,
+    readme TEXT,
+    commit_hash TEXT,
     has_insecure_dependency BOOLEAN
 )
 AS $$
@@ -134,15 +135,17 @@ BEGIN
         v.insecure,
         v.created_at,
         v.size_kb,
-        (SELECT COUNT(*) 
+        (SELECT COUNT(*)::INTEGER 
          FROM package_dependencies pd
          WHERE v.id = pd.version_id) AS dependency_count,
         v.compiler,
         v.license,
+        v.readme,
+        v.commit_hash,
         EXISTS(
             SELECT 1
             FROM package_dependencies pd
-            INNER JOIN versions dep_v ON pd.depends_on_version_id = dep_v.id
+            INNER JOIN versions dep_v ON pd.depends_on_id = dep_v.id
             WHERE pd.version_id = v.id AND dep_v.insecure = true
         ) AS has_insecure_dependency
     FROM 
@@ -153,20 +156,19 @@ END;
 $$
 LANGUAGE plpgsql;
 
-
 -----------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.get_package_details CASCADE;
 CREATE OR REPLACE FUNCTION get_package_details(_package_id INTEGER)
 RETURNS TABLE(
     id INTEGER,
-    name TEXT,
-    slug TEXT,
+    host_name TEXT,
+    owner_name TEXT,
+    repo_name TEXT,
     description TEXT,
     state package_state,
     keywords TEXT[],
-    bookmarks BIGINT,
+    bookmarks INTEGER,
     url TEXT,
-    readme TEXT,
-    owner TEXT,
     authors TEXT[]
 )
 AS $$
@@ -174,15 +176,14 @@ BEGIN
     RETURN QUERY
     SELECT 
         p.id,
-        p.name,
-        p.slug,
+        p.host_name,
+        p.owner_name,
+        p.repo_name,
         p.description,
         p.state,
         (SELECT array_agg(k.keyword) FROM package_keywords pk INNER JOIN keywords k ON pk.keyword_id = k.id WHERE pk.package_id = _package_id) AS keywords,
-        (SELECT COUNT(*) FROM bookmarks bm WHERE bm.package_id = _package_id) AS bookmarks,
+        (SELECT COUNT(*)::INTEGER FROM bookmarks bm WHERE bm.package_id = _package_id) AS bookmarks,
         p.url,
-        p.readme,
-        u.gh_login AS owner,
         ARRAY(
             SELECT a.gh_login
             FROM package_authors pa
@@ -191,13 +192,13 @@ BEGIN
         ) AS authors
     FROM 
         packages p
-    INNER JOIN
-        users u ON p.owner = u.id
     WHERE 
         p.id = _package_id;
 END;
 $$
 LANGUAGE plpgsql;
+
+
 -----------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_dependent_packages(_package_id INTEGER)
 RETURNS TABLE(
@@ -217,7 +218,7 @@ BEGIN
     INNER JOIN
         package_dependencies pd ON v.id = pd.version_id
     WHERE 
-        pd.depends_on_version_id IN (SELECT id FROM versions WHERE package_id = _package_id);
+        pd.depends_on_id IN (SELECT id FROM versions WHERE package_id = _package_id);
 END;
 $$
 LANGUAGE plpgsql;

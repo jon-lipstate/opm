@@ -1,9 +1,8 @@
-DROP FUNCTION IF EXISTS public.insert_user CASCADE;
-DROP FUNCTION IF EXISTS public.upsert_user CASCADE;
 
 --maybe?
 -- CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA public;
 -- CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+DROP FUNCTION IF EXISTS public.upsert_user CASCADE;
 CREATE OR REPLACE FUNCTION public.upsert_user(
     _gh_id INT,
     _new_login TEXT,
@@ -53,31 +52,3 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
-
-
--- CALL insert_user('gh_login_value', 'gh_access_token_value', 'gh_avatar_value', gh_id_value, 'gh_email_value');
-CREATE OR REPLACE PROCEDURE insert_user(
-    _gh_login TEXT,
-    _gh_access_token TEXT,
-    _gh_avatar TEXT,
-    _gh_id INT,
-    _gh_email TEXT
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    INSERT INTO public.users(
-        gh_login,
-        gh_access_token,
-        gh_avatar,
-        gh_id,
-        gh_email
-    ) VALUES (
-        _gh_login,
-        _gh_access_token,
-        _gh_avatar,
-        _gh_id,
-        _gh_email
-    );
-END;
-$$;

@@ -68,23 +68,31 @@ export function isValidSemver(version) {
  * @param urlString ASSUMES: https: hostname / user / repository
  * @returns user, repo
  */
-export function extractUserAndProject(urlString) {
+export function extractHostOwnerAndRepo(urlString) {
 	try {
 		const url = new URL(urlString);
-		const pathParts = url.pathname.split('/');
+
+		// Remove potential credentials
+		url.username = '';
+		url.password = '';
+
+		const host_name = url.host;
 
 		// The path should look like /user/repo, so after splitting
-		// the user should be in index 1 and repo in index 2
-		if (pathParts.length < 3) {
+		// the owner should be all parts up to the last part, and repo the last part
+		const pathParts = url.pathname.split('/').filter(Boolean); // filter(Boolean) removes empty strings
+
+		if (pathParts.length < 2) {
 			throw new Error('Invalid URL');
 		}
 
-		const user = pathParts[1];
-		const repo = pathParts[2];
+		const repo_name = pathParts.pop(); // The last part of the path is the repo
+		const owner_name = pathParts.join('/'); // The rest of the path is the owner
 
-		return { user, repo };
+		return { host_name, owner_name, repo_name };
 	} catch (error: any) {
-		console.error(`Failed to parse URL: ${error.message}`);
-		return null;
+		const e = `Failed to parse URL: ${error.message}`;
+		console.error(e);
+		throw Error(e);
 	}
 }

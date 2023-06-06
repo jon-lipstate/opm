@@ -3,15 +3,14 @@
 	import { timeAgo } from '$lib/utils';
 
 	export let pkg: App.SearchResult;
-	let packageName = pkg.name.toLowerCase().replace(/\s/g, '-');
 </script>
 
 <div class="search-result">
 	<!-- <pre>{JSON.stringify(pkg, null, 2)}</pre> -->
 	<h2 class="search-result--header">
-		<a href={`/packages/${pkg.owner}/${packageName}`}>
-			<span class="color-primary">{pkg.name}</span>
-			<span class="result-path">( {pkg.owner}/{pkg.slug} )</span>
+		<a href={`/${pkg.host_name}/${pkg.owner_name}/${pkg.repo_name}`}>
+			<span class="color-primary">{pkg.repo_name}</span>
+			<span class="result-path">( {pkg.host_name}/{pkg.owner_name}/{pkg.repo_name} )</span>
 		</a>
 	</h2>
 	<span class="block">{pkg.description}</span>
@@ -43,7 +42,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem;
-		font-size: 1.3rem;
+		font-size: 1.5rem;
 	}
 
 	.result-path {

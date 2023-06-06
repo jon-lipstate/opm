@@ -28,7 +28,7 @@
 
 <section>
 	<h2>Total Packages: {count}</h2>
-	{#each results as pkg (pkg.name)}
+	{#each results as pkg (pkg.host_name + pkg.owner_name + pkg.repo_name)}
 		<SearchResult {pkg} />
 	{/each}
 	{#if totalPages > 1}

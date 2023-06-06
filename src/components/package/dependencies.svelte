@@ -3,9 +3,8 @@
 	import { timeAgo } from '$lib/utils';
 	import type { FlatDependencies, LicenseSummary } from 'src/routes/api/details/dependencies/+server';
 	//
-	function navTo(owner, slug) {
-		// pageParamsStore.set({ owner, slug });
-		goto(`/packages/${owner}/${slug}`);
+	function navTo(host, owner, repo) {
+		goto(`/${host}/${owner}/${repo}`);
 	}
 	//
 	export let licenses: LicenseSummary[] = [];
@@ -20,11 +19,16 @@
 		<h2>Licenses</h2>
 		<ul>
 			{#each licenses as lic, i (lic)}
-				<li>
-					<span class="license">{lic.license} </span>
-					<span class="primary">:: </span>
-					<span> {lic.packages.join(', ')}</span>
-				</li>
+				<details>
+					<summary>
+						<span class="license">{lic.license}</span>
+					</summary>
+					<ul class="expanded-list">
+						{#each lic.packages as pkg}
+							<li>{pkg}</li>
+						{/each}
+					</ul>
+				</details>
 			{/each}
 		</ul>
 	</div>
@@ -37,6 +41,8 @@
 			<thead>
 				<tr>
 					<th>Package</th>
+					<th>Owner</th>
+					<th>Host</th>
 					<th>Version</th>
 					<th>License</th>
 					<th>Updated</th>
@@ -47,7 +53,9 @@
 				{#each flat as dep, i (i)}
 					<tr>
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<td on:click={() => navTo(dep.owner, dep.slug)} class="link">{dep.package_name}</td>
+						<td on:click={() => navTo(dep.host_name, dep.owner_name, dep.repo_name)} class="link">{dep.repo_name}</td>
+						<td>{dep.owner_name}</td>
+						<td>{dep.host_name}</td>
 						<td>{dep.version}</td>
 						<td>{dep.license}</td>
 						{#if dep.state == 'archived'}
@@ -68,6 +76,9 @@
 </section>
 
 <style>
+	.expanded-list {
+		padding-left: 1rem;
+	}
 	.link {
 		color: var(--color-theme-1);
 	}
@@ -75,9 +86,9 @@
 		text-decoration: underline;
 		cursor: pointer;
 	}
-	.primary {
+	/* .primary {
 		color: var(--color-theme-1);
-	}
+	} */
 	.license {
 		color: var(--c-odin-blue-lighten-4);
 	}
@@ -142,15 +153,21 @@
 		}
 
 		td:nth-of-type(2):before {
+			content: 'Owner :: ';
+		}
+		td:nth-of-type(3):before {
+			content: 'Host :: ';
+		}
+		td:nth-of-type(4):before {
 			content: 'Version :: ';
 		}
 		td:nth-of-type(3):before {
 			content: 'License :: ';
 		}
-		td:nth-of-type(4):before {
+		td:nth-of-type(5):before {
 			content: 'Updated :: ';
 		}
-		td:nth-of-type(5):before {
+		td:nth-of-type(6):before {
 			content: 'Security :: ';
 		}
 	}

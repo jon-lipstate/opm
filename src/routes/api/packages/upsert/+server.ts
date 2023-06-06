@@ -1,5 +1,5 @@
 import sql from '$lib/database';
-import { extractUserAndProject, generateSlug, isValidSemver } from '$lib/utils.js';
+import { extractHostOwnerAndRepo, generateSlug, isValidSemver } from '$lib/utils.js';
 import { error, json } from '@sveltejs/kit';
 import { getAuth } from '../../auth.js';
 import axios from 'axios';
@@ -21,7 +21,8 @@ async function getUserId(userName, authToken): Promise<number> {
 export async function POST(event) {
 	const pkg = JSON.parse(await event.request.text());
 	let userId = -1;
-	const slug = generateSlug(pkg.name);
+	const { host_name, owner_name, repo_name } = extractHostOwnerAndRepo(pkg.url);
+	console.warn(host_name, owner_name, repo_name);
 	const description = pkg.description;
 	let readme: string = '';
 	let size_kb = 42;
@@ -44,12 +45,18 @@ export async function POST(event) {
 		errors.push("Invalid 'version' field. Must comply with semver, do not include 'v'");
 	}
 
-	if (pkg.name.length < 1) {
-		errors.push('Name must be at least one character.');
+	if (!host_name || host_name.length < 5) {
+		// todo: ping the host? smallest i think is something like `sr.ht`
+		errors.push('Invalid Host.');
 	}
 
-	if (slug.length < 1) {
-		errors.push('Name must be encodable as a slug with >1 char.');
+	if (!owner_name || owner_name.length < 3) {
+		// todo: find min gh length?
+		errors.push('Owner name invalid.');
+	}
+	if (!repo_name || repo_name.length < 3) {
+		// todo: find min gh length?
+		errors.push('Repo name invalid.');
 	}
 
 	if (description.length < 10) {
@@ -57,11 +64,10 @@ export async function POST(event) {
 	}
 	// TODO: cli path needs to fetch token from db to make this call
 	const { login, authHeader } = await getAuth(event);
-	const { user, repo } = extractUserAndProject(pkg.url)!; // todo: should fail on null?
-	if (user != login) {
-		errors.push('User and login do not match, note that only github is supported at present.');
+	if (owner_name != login) {
+		errors.push('Require Owner to match login, to be retired once CLI completed (this issue bars groups for now too).');
 	}
-	const contentsRes = await axios.get(`https://api.github.com/repos/${login}/${repo}/contents`, authHeader);
+	const contentsRes = await axios.get(`https://api.github.com/repos/${login}/${repo_name}/contents`, authHeader);
 	if (!pkg.license) {
 		errors.push('Packages without licenses are prohibited.');
 	}
@@ -89,27 +95,27 @@ export async function POST(event) {
 	// this verifies deps are good:
 	if (pkg.dependencies) {
 		const deps = Object.keys(pkg.dependencies).map((x) => {
-			let [name, slug] = x.split('/');
+			let [host_name, owner_name, repo_name] = x.split('/');
 			let version = pkg.dependencies[x];
-			return { name, slug, version };
+			return { host_name, owner_name, repo_name, version };
 		});
 		//@ts-ignore
-		const pkgIdsRes = await sql`select * from get_package_ids(${deps})`;
+		const pkgIdsRes = await sql`SELECT * FROM get_package_ids(${deps})`;
 		for (let i = 0; i < deps.length; i++) {
 			const id = pkgIdsRes[i].package_id;
 			if (!id) {
-				errors.push(`Invalid package ${deps[i].name}/${deps[i].slug}`);
+				errors.push(`Invalid package ${deps}`);
 			}
 			//@ts-ignore
 			deps[i].id = id;
 		}
 		//@ts-ignore
-		const versionIdsRes = await sql`select * from get_version_ids(${deps})`;
+		const versionIdsRes = await sql`SELECT * FROM get_version_ids(${deps})`;
 		for (let i = 0; i < deps.length; i++) {
 			const vid = versionIdsRes[i].version_id;
 			const dep = deps[i];
-			if (!vid) {
-				errors.push(`Invalid Version Id ${dep.name}/${dep.slug}`);
+			if (!vid && vid !== 0) {
+				errors.push(`Invalid Version Id ${dep}`);
 			}
 		}
 		depVersionIds = versionIdsRes.map((x) => x.version_id);
@@ -123,64 +129,30 @@ export async function POST(event) {
 		//@ts-ignore
 		const createRes = await sql`call upsert_full_package(
 		${userId}::INTEGER,
-		${pkg.name}::TEXT,
-		${slug}::TEXT,
+		${host_name}::TEXT,
+		${owner_name}::TEXT,
+		${repo_name}::TEXT,
 		${description}::TEXT,
 		${readme}::TEXT,
 		${pkg.url}::TEXT,
 		${pkg.version.replace('v', '')}::TEXT,
 		${pkg.license}::TEXT,
 		${size_kb}::INTEGER,
-		${pkg.compiler ?? 'not specified'}::TEXT,
+		${pkg.compiler ?? 'unknown'}::TEXT,
+		${pkg.commit_hash}::TEXT,
 		ARRAY[${sql.array(pkg.keywords)}],
-		ARRAY[${sql.unsafe(depVersionIds.join(','))}]::INTEGER[]
+		${depVersionIds}::INTEGER[]
 		)`;
+		//
 	} catch (e: any) {
 		console.warn('sql error:', e);
 	}
 
 	return json({ msg: 'Not Implemented' }, { status: 201 });
-	// TODO: NAME MUST BE SLUGGABLE IMPLICITLY
-
-	// await make_package_table();
-
 	try {
-		console.warn('INSERTING PKG');
-		await insert_new_package({
-			name: 'Test',
-			updated_at: new Date(),
-			created_at: new Date(),
-			downloads: 42,
-			description: 'at a time',
-			readme: 'stuff and things',
-			repository: 'https://google.com',
-			size_kb: 42
-		});
-
 		return json(null, { status: 201 });
 	} catch (error) {
 		console.error('Error inserting package details', error);
 		return json(null, { status: 500 });
 	}
 }
-
-const insert_new_package = async function ({
-	name,
-	updated_at,
-	created_at,
-	downloads,
-	description,
-	readme,
-	repository,
-	size_kb
-}) {
-	console.warn(name, updated_at, created_at, downloads, description, readme, repository, size_kb);
-	try {
-		await sql`INSERT INTO packages (name, updated_at, created_at, downloads, description, readme, repository, size_kb)
-				VALUES (${name}, ${updated_at}, ${created_at}, ${downloads}, ${description}, ${readme}, ${repository}, ${size_kb})`;
-
-		console.log('Package inserted successfully');
-	} catch (error) {
-		console.error('Error inserting package: ', error);
-	}
-};

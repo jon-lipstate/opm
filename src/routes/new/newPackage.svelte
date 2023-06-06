@@ -55,21 +55,22 @@
 	}
 	async function subTest() {
 		const data = {
-			name: 'regex',
 			version: '0.2.0',
-			authors: ['jon-lipstate'],
-			description: 'regex is a nfa regex engine',
 			url: 'https://github.com/jon-lipstate/odin-regex',
-			readme: 'readme.md',
+			description: 'regex is a nfa regex engine',
 			license: 'BSD-3',
+			authors: ['jon-lipstate'], // how to verify?
 			keywords: ['regex', 'nfa'],
-			kind: 'Library',
-			os: ['Linux', 'Windows', 'Darwin', 'Essence'],
-			compiler: 'dev-2023-05',
 			dependencies: {
-				'jon/http-server': '1.0.0',
-				'odie/async-runtime': '1.2.3'
-			}
+				'github.com/jon/http-server': '1.0.0',
+				'github.com/odie/async-runtime': '1.2.3'
+			},
+			//inferrable via cli:
+			readme: 'readme.md', // web-ui: must give the downloadUrl, cli: POST with raw-text off the directory
+			commit_hash: 'abcd1234', // cli read .git, web ???
+			// os: ['Linux', 'Windows', 'Darwin', 'Essence'], // to be captured in cli via ast (when odin_os == .xx)?
+			compiler: 'dev-2023-05', // auto-captured by the cli, only need for web?
+			size_kb: 42 // infer from cli or github
 		};
 		const response = await axios.post('/api/packages/upsert', data);
 		console.log(response.data);

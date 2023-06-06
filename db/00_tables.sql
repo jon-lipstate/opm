@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS public.scopes CASCADE;
 DROP TABLE IF EXISTS public.user_scopes CASCADE;
 DROP TABLE IF EXISTS public.security_issues CASCADE;
 DROP TABLE IF EXISTS public.background_jobs CASCADE;
+
 DROP EXTENSION IF EXISTS pgcrypto;
 --
 CREATE TYPE package_state AS ENUM ('unpublished','active', 'archived','moderated','deleted');
@@ -37,23 +38,22 @@ CREATE TABLE IF NOT EXISTS public.users (
     ban_reason TEXT,
     ban_timeout TIMESTAMP
 );
-
 CREATE TABLE IF NOT EXISTS public.packages (
     id SERIAL PRIMARY KEY,
-	owner INTEGER REFERENCES users(id),
-	name TEXT NOT NULL, -- todo: what to do if rename? forward links, or just ban rename?
-	slug TEXT NOT NULL,
-	description TEXT,
-    readme TEXT,
-	url TEXT, -- url or git, both?
-	state package_state DEFAULT 'active',
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	readme_rendered_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, -- todo: poll gh readme dates?
-	TSV tsvector,
-    UNIQUE(name,owner)
+    host_name TEXT NOT NULL, -- host e.g. 'github.com', 'sr.ht'
+    owner_name TEXT NOT NULL, -- owner name in relation to the repo e.g. 'jon-lipstate', '~mjolnir'
+    repo_name TEXT NOT NULL, -- repository name from url
+    description TEXT,
+    url TEXT, -- url or git, both?
+    state package_state DEFAULT 'active',
+    owner_id INTEGER REFERENCES users(id), -- github user-id
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    TSV tsvector,
+    UNIQUE(host_name, owner_name, repo_name)
 );
-UPDATE packages SET TSV = to_tsvector('english', name || ' ' || description);
+
+UPDATE packages SET TSV = to_tsvector('english', repo_name || ' ' || description);
 CREATE INDEX packages_tsv_idx ON packages USING gin(tsv);
 
 
@@ -68,6 +68,8 @@ CREATE TABLE IF NOT EXISTS public.versions (
     id SERIAL PRIMARY KEY,
     package_id INTEGER REFERENCES packages(id) ON DELETE CASCADE,
     version TEXT NOT NULL,
+    readme TEXT,
+    commit_hash TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL,
     license TEXT NOT NULL,
     size_kb INTEGER,
@@ -77,7 +79,6 @@ CREATE TABLE IF NOT EXISTS public.versions (
     downloads INTEGER DEFAULT 0,
     UNIQUE(version,package_id)
 );
-
 
 -- idk if this is a keeper, only really care to point users to more info
 CREATE TABLE security_issues (
@@ -105,10 +106,9 @@ CREATE TABLE IF NOT EXISTS public.package_keywords (
 );
 
 CREATE TABLE package_dependencies (
-    --id SERIAL PRIMARY KEY,
     version_id INTEGER REFERENCES versions(id) ON DELETE CASCADE,
-    depends_on_version_id INTEGER REFERENCES versions(id) ON DELETE CASCADE,
-    UNIQUE(version_id, depends_on_version_id)
+    depends_on_id INTEGER REFERENCES versions(id) ON DELETE CASCADE,
+    UNIQUE(version_id, depends_on_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.bookmarks (

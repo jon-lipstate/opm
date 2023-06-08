@@ -182,3 +182,33 @@ BEGIN
             v.version = (pkg->>'version');
     END LOOP;
 END; $$ LANGUAGE plpgsql;
+
+----------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS insert_token;
+CREATE OR REPLACE FUNCTION insert_token(_user_id INTEGER, _name TEXT, _token TEXT)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO public.api_tokens(user_id, name, token_hash)
+    VALUES (_user_id, _name, digest(_token, 'sha256'));
+END;
+$$ LANGUAGE plpgsql;
+
+----------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS verify_token;
+CREATE OR REPLACE FUNCTION verify_token(_token TEXT)
+RETURNS INTEGER AS $$
+DECLARE
+    _user_id INTEGER;
+BEGIN
+    SELECT user_id INTO _user_id 
+    FROM public.api_tokens 
+    WHERE digest(_token, 'sha256') = token_hash
+    AND revoked = false;
+
+    IF _user_id IS NULL THEN
+        RAISE EXCEPTION 'Invalid or revoked token';
+    END IF;
+
+    RETURN _user_id;
+END;
+$$ LANGUAGE plpgsql;

@@ -1,4 +1,7 @@
 <script>
+	import { generateRandomString } from '$lib/utils';
+
+	console.warn(generateRandomString(32));
 </script>
 
 <main>

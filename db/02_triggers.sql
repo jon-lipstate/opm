@@ -48,20 +48,35 @@ BEGIN
 END
 $$;
 
-CREATE OR REPLACE FUNCTION public.verify_package_name() RETURNS TRIGGER AS $$
+-- Trigger for INSERT
+DROP FUNCTION IF EXISTS verify_package_name_insert CASCADE;
+CREATE OR REPLACE FUNCTION public.verify_package_name_insert() RETURNS TRIGGER AS $$
 BEGIN
-    IF EXISTS(SELECT 1 FROM packages WHERE CONCAT(host_name, owner_name, repo_name) = CONCAT(NEW.host_name, NEW.owner_name, NEW.repo_name)) OR
-       EXISTS(SELECT 1 FROM reserved_names WHERE name = NEW.repo_name) THEN
+    IF EXISTS(SELECT 1 FROM reserved_names WHERE name = NEW.repo_name) THEN
         RAISE EXCEPTION 'Package name % is reserved.', NEW.repo_name;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE TRIGGER check_reserved_name_insert_trigger 
+BEFORE INSERT ON packages
+FOR EACH ROW EXECUTE FUNCTION verify_package_name_insert();
 
-CREATE TRIGGER check_reserved_name_trigger 
-BEFORE INSERT OR UPDATE ON packages
-FOR EACH ROW EXECUTE FUNCTION verify_package_name();
+-- Trigger for UPDATE
+DROP FUNCTION IF EXISTS verify_package_name_update CASCADE;
+CREATE OR REPLACE FUNCTION public.verify_package_name_update() RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS(SELECT 1 FROM reserved_names WHERE name = NEW.repo_name) THEN
+        RAISE EXCEPTION 'Package name % is reserved.', NEW.repo_name;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_reserved_name_update_trigger 
+BEFORE UPDATE ON packages
+FOR EACH ROW EXECUTE FUNCTION verify_package_name_update();
 
 
 CREATE OR REPLACE FUNCTION delete_unused_keywords() RETURNS TRIGGER AS $$

@@ -70,7 +70,7 @@ RETURNS TABLE(
     repo_name TEXT,
     version TEXT,
     license TEXT,
-    last_updated TIMESTAMP,
+    last_updated TIMESTAMP WITH TIME ZONE,
     state package_state,
     insecure BOOLEAN
 )
@@ -117,7 +117,7 @@ RETURNS TABLE(
     id INTEGER,
     version TEXT,
     insecure BOOLEAN,
-    createdAt TIMESTAMP,
+    createdAt TIMESTAMP WITH TIME ZONE,
     size_kb INTEGER,
     dependency_count INTEGER,
     compiler TEXT,

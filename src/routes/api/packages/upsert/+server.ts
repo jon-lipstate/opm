@@ -111,7 +111,7 @@ export async function POST(event) {
 
 		//
 	} catch (err: any) {
-		console.warn('ERRRR', { message: err });
+		console.warn('Package Create Error', { message: err });
 		if (!err.status) {
 			return json({ error: 'RESERVED PACKAGE' }, { status: 400 });
 		} else {

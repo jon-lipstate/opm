@@ -30,13 +30,13 @@ CREATE TABLE IF NOT EXISTS public.users (
     gh_access_token TEXT NOT NULL,
 	gh_avatar TEXT,
     gh_id INT NOT NULL UNIQUE, -- stable id, login can change
-	gh_created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	gh_created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     -- todo: move to own table?
     banned BOOLEAN NOT NULL DEFAULT false,
     ban_reason TEXT,
-    ban_timeout TIMESTAMP
+    ban_timeout TIMESTAMP WITH TIME ZONE 
 );
 CREATE TABLE IF NOT EXISTS public.packages (
     id SERIAL PRIMARY KEY,
@@ -47,8 +47,8 @@ CREATE TABLE IF NOT EXISTS public.packages (
     url TEXT, -- url or git, both?
     state package_state DEFAULT 'active',
     owner_id INTEGER REFERENCES users(id), -- github user-id
-    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     TSV tsvector,
     UNIQUE(host_name, owner_name, repo_name)
 );
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS public.versions (
     version TEXT NOT NULL,
     readme TEXT,
     commit_hash TEXT,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     license TEXT NOT NULL,
     size_kb INTEGER,
     published_by INTEGER REFERENCES users(id),
@@ -89,8 +89,8 @@ CREATE TABLE security_issues (
     link TEXT, -- http-url
     level severity NOT NULL,
     reporter_id INTEGER REFERENCES users(id), -- must login or anon ok??
-	reported_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	reported_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
     pending BOOLEAN DEFAULT false, -- if left pending for x-days triggers a confirm?
     UNIQUE(version_id, name)
 );
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS public.create_limits (
 	-- TODO PK
     user_id INTEGER NOT NULL REFERENCES users(id),
 	actions INTEGER NOT NULL,
-    last_refill timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    last_refill timestamp WITH time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- action logs
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS public.actions (
     row_id INTEGER NOT NULL,
     action TEXT NOT NULL,
     comment TEXT,
-    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- user-cli auth tokens
@@ -152,8 +152,8 @@ CREATE TABLE IF NOT EXISTS public.api_tokens (
     user_id INTEGER NOT NULL REFERENCES users(id),
     name TEXT NOT NULL,
     token_hash bytea NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL, 
-    last_touched timestamp without time zone, -- last used | edited
+    created_at timestamp WITH time zone DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+    last_touched timestamp WITH time zone, -- last used | edited
 	revoked BOOLEAN DEFAULT false
 );
 -- INSERT INTO api_tokens (user_id, name, token_hash, scopes)
@@ -168,8 +168,8 @@ CREATE TABLE public.background_jobs (
     job_type text NOT NULL,
     data jsonb DEFAULT '{}'::jsonb NOT NULL,
     retries integer DEFAULT 0 NOT NULL,
-    last_retry timestamp without time zone DEFAULT '1970-01-01 00:00:00'::timestamp without time zone NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    last_retry timestamp WITH time zone DEFAULT '1970-01-01 00:00:00'::timestamp WITH time zone NOT NULL,
+    created_at timestamp WITH time zone DEFAULT now() NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS public.scopes (
@@ -180,6 +180,6 @@ CREATE TABLE IF NOT EXISTS public.scopes (
 CREATE TABLE IF NOT EXISTS public.user_scopes (
     user_id INTEGER NOT NULL REFERENCES users(id),
     scope_id INTEGER NOT NULL REFERENCES scopes(id) ON DELETE CASCADE,
-    granted_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    granted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     PRIMARY KEY (user_id, scope_id)
 );

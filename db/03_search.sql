@@ -1,8 +1,6 @@
 DROP FUNCTION IF EXISTS public.search_packages CASCADE;
 DROP FUNCTION IF EXISTS public.search_packages_no_keyword CASCADE;
-DROP FUNCTION IF EXISTS public.get_package_results CASCADE;
 DROP FUNCTION IF EXISTS public.search_and_get_results CASCADE;
-DROP FUNCTION IF EXISTS public.browse_packages CASCADE;
 DROP TYPE IF EXISTS public.search_result CASCADE;
 DROP TYPE IF EXISTS public.get_package_id_by_slug_and_username CASCADE;
 ---
@@ -22,6 +20,7 @@ $$ LANGUAGE plpgsql;
 
 
 ---
+DROP TYPE IF EXISTS search_result cascade;
 CREATE TYPE search_result AS (
     package_id INTEGER,
     host_name TEXT,
@@ -30,13 +29,15 @@ CREATE TYPE search_result AS (
     description TEXT,
     version TEXT,
     license TEXT,
-    last_updated TIMESTAMP,
+    last_updated TIMESTAMP WITH TIME ZONE,  
     downloads INTEGER,
     dependency_count INTEGER,
     keywords TEXT[]
 );
 
+
 ---
+DROP FUNCTION IF EXISTS public.browse_packages CASCADE;
 CREATE OR REPLACE FUNCTION browse_packages(_limit INTEGER DEFAULT 100, _offset INTEGER DEFAULT 0)
 RETURNS SETOF search_result
 AS $$
@@ -141,7 +142,7 @@ LANGUAGE plpgsql;
 --------------------------------------------------------------------------------------------------------------------------
 -- Hydrate Search
 --------------------------------------------------------------------------------------------------------------------------
--- select * from public.get_package_results(ARRAY[1,2])
+DROP FUNCTION IF EXISTS public.get_package_results CASCADE;
 CREATE OR REPLACE FUNCTION get_package_results(_package_ids INT[])
 RETURNS SETOF search_result
 AS $$

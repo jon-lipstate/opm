@@ -2,6 +2,7 @@
 	export let checked = true;
 	export let whenTrue = '';
 	export let whenFalse = '';
+	export let label = '';
 	export let disabled = false;
 </script>
 
@@ -9,6 +10,9 @@
 	<input type="checkbox" bind:checked on:click={() => (checked = !checked)} {disabled} />
 	<span class="slider" />
 </label>
+{#if !!label}
+	<span>{label}</span>
+{/if}
 <span>{checked ? whenTrue : whenFalse}</span>
 
 <style>

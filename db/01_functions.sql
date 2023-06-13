@@ -207,6 +207,11 @@ BEGIN
 
     IF _user_id IS NULL THEN
         RAISE EXCEPTION 'Invalid or revoked token';
+    ELSE
+        UPDATE public.api_tokens 
+        SET last_touched = NOW() 
+        WHERE digest(_token, 'sha256') = token_hash
+        AND revoked = false;
     END IF;
 
     RETURN _user_id;

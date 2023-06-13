@@ -9,7 +9,8 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			$components: '/src/components',
-			$stores: '/src/stores'
+			$stores: '/src/stores',
+			$api: '/src/routes/api'
 		}
 	}
 });

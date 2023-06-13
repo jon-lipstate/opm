@@ -2,20 +2,6 @@ import sql from '$lib/database';
 import { extractHostOwnerAndRepo, isValidSemver } from '$lib/utils.js';
 import { error, json } from '@sveltejs/kit';
 
-// async function getUserId(userName, authToken): Promise<number> {
-// 	try {
-// 		const userRes = await sql`
-// 			SELECT id FROM users
-// 			WHERE gh_login = ${userName}
-// 			AND gh_access_token = ${authToken}
-// 		`;
-// 		return userRes[0].id;
-// 	} catch (err) {
-// 		console.error('User Validation Error\n', err);
-// 		throw error(401, `User Auth Error:, ${err}`);
-// 	}
-// }
-
 export async function POST(event) {
 	try {
 		let pkg = JSON.parse(await event.request.text());

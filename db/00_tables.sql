@@ -145,7 +145,6 @@ CREATE TABLE IF NOT EXISTS public.actions (
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-
 -- user-cli auth tokens
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 CREATE TABLE IF NOT EXISTS public.api_tokens (
@@ -154,7 +153,7 @@ CREATE TABLE IF NOT EXISTS public.api_tokens (
     name TEXT NOT NULL,
     token_hash bytea NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL, 
-    updated_at timestamp without time zone, -- last used | edited
+    last_touched timestamp without time zone, -- last used | edited
 	revoked BOOLEAN DEFAULT false
 );
 -- INSERT INTO api_tokens (user_id, name, token_hash, scopes)

@@ -152,5 +152,5 @@ code {
 	color: var(--c-odin-blue-lighten-3);
 }
 .color-secondary {
-	color: var(--c-odin-orange);
+	color: var(--color-theme-2);
 }

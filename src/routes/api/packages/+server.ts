@@ -1,6 +1,30 @@
+import { getUserId, getAuth } from '$api/auth';
 import sql from '$lib/database';
 import { extractHostOwnerAndRepo, isValidSemver } from '$lib/utils.js';
 import { error, json } from '@sveltejs/kit';
+
+export async function GET(event) {
+	// TODO: allow for query string to select other users, eg browse by owner
+	//@ts-ignore
+	const { login, session } = await getAuth(event);
+	let pkgs;
+	try {
+		const userId = await getUserId(login, session.accessToken);
+		pkgs = await sql`SELECT id,host_name,owner_name,repo_name,description FROM packages where owner_id=${userId}`;
+		for (let i = 0; i < pkgs.length; i++) {
+			const versions =
+				await sql`SELECT id,version,license,commit_hash,insecure FROM versions where package_id=${pkgs[i].id}`;
+			pkgs[i].versions = versions ?? [];
+		}
+		return json(pkgs);
+	} catch (err: any) {
+		console.error('SQL Get Packages Error\n', err);
+		if (err.status < 500) {
+			throw error(err.status, err.body.message);
+		}
+		throw error(500, `SQL Get Packages Error:, ${err}`);
+	}
+}
 
 export async function POST(event) {
 	try {
@@ -118,5 +142,24 @@ export async function POST(event) {
 			console.error('Error inserting package details', err);
 			throw error(503, { message: err });
 		}
+	}
+}
+
+export async function DELETE(event) {
+	const body = await event.request.json();
+	const id = body.id;
+	//@ts-ignore
+	const { login, session } = await getAuth(event);
+	try {
+		const userId = await getUserId(login, session.accessToken);
+
+		await sql`DELETE from packages where owner_id=${userId} AND id=${id}`;
+		return json({ status: 200 });
+	} catch (err: any) {
+		console.error('SQL New Token Error\n', err);
+		if (err.status < 500) {
+			throw error(err.status, err.body.message);
+		}
+		throw error(500, `SQL New Token Error:, ${err}`);
 	}
 }

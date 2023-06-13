@@ -37,7 +37,7 @@
 		<div class="menu">
 			<a on:click={toggleMenu} href="/">Search</a>
 			<a on:click={toggleMenu} href="/browse">Browse Packages</a>
-			<a on:click={toggleMenu} href="/new">New Package</a>
+			<!-- <a on:click={toggleMenu} href="/new">New Package</a> -->
 			<a on:click={toggleMenu} href="/manage">Manage Packages</a>
 			<!-- {#if $isAdmin}
           <a on:click={toggleMenu} href="/admin">Admin</a>

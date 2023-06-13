@@ -48,7 +48,7 @@
 			<h3 class="color-secondary">{newTokenValue}</h3>
 			<span class="warning">Warning: Copy immediately, this value will never be shown again.</span>
 		{/if}
-		<h2>Existing Tokens</h2>
+		<h2>Existing CLI Tokens</h2>
 		<table>
 			<thead>
 				<tr>

@@ -47,11 +47,10 @@ export async function DELETE(event) {
 	const id = body.id;
 	//@ts-ignore
 	const { login, session } = await getAuth(event);
-	let tokens;
 	try {
 		const userId = await getUserId(login, session.accessToken);
-		tokens = await sql`DELETE from api_tokens where user_id=${userId} AND id=${id}`;
-		return json(tokens);
+		await sql`DELETE from api_tokens where user_id=${userId} AND id=${id}`;
+		return json({ status: 200 });
 	} catch (err: any) {
 		console.error('SQL New Token Error\n', err);
 		if (err.status < 500) {

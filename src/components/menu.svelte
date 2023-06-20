@@ -42,7 +42,7 @@
 			<!-- {#if $isAdmin}
           <a on:click={toggleMenu} href="/admin">Admin</a>
       {/if} -->
-			<a on:click={toggleMenu} href="/account">Account</a>
+			<a on:click={toggleMenu} href="/account">Account Tokens</a>
 			<a on:click={handleLogout} href="/auth/signout">Logout</a>
 		</div>
 	{/if}

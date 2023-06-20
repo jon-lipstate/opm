@@ -53,25 +53,27 @@
 					<th>Imports</th>
 					<th>Compiler</th>
 					<th>License</th>
-					<th>Direct Security Issue?</th>
-					<th>Indirect Security Issue?</th>
+					<th>Commit Hash</th>
+					<!-- <th>Direct Security Issue?</th>
+					<th>Indirect Security Issue?</th> -->
 				</tr>
 			</thead>
 			<tbody>
 				{#each details.versions as info}
 					<tr>
-						<td
-							><a href="/{details.host_name}/{details.owner_name}/{details.repo_name}?version={info.version}"
-								>{info.version}</a
-							></td
-						>
+						<td>
+							<a href="/{details.host_name}/{details.owner_name}/{details.repo_name}?version={info.version}">
+								{info.version}
+							</a>
+						</td>
 						<td>{timeAgo(info.createdat)}</td>
 						<td>{info.size_kb}</td>
 						<td>{info.dependency_count}</td>
 						<td>{info.compiler}</td>
 						<td>{info.license}</td>
-						<td>{info.insecure}</td>
-						<td>{info.has_insecure_dependency}</td>
+						<td class="mono">{info.commit_hash}</td>
+						<!-- <td>{info.insecure}</td>
+						<td>{info.has_insecure_dependency}</td> -->
 					</tr>
 				{/each}
 			</tbody>
@@ -84,5 +86,8 @@
 		max-width: 90vw;
 		width: 100%;
 		text-align: center;
+	}
+	.mono {
+		font-family: 'Courier New', Courier, monospace;
 	}
 </style>

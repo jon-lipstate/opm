@@ -68,15 +68,16 @@ CREATE TABLE IF NOT EXISTS public.versions (
     id SERIAL PRIMARY KEY,
     package_id INTEGER REFERENCES packages(id) ON DELETE CASCADE,
     version TEXT NOT NULL,
-    readme TEXT,
     commit_hash TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     license TEXT NOT NULL,
     size_kb INTEGER,
     published_by INTEGER REFERENCES users(id),
     insecure BOOLEAN DEFAULT false, 
     compiler TEXT NOT NULL,
     downloads INTEGER DEFAULT 0,
+    readme TEXT,
     UNIQUE(version,package_id)
 );
 

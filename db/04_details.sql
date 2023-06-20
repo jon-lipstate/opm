@@ -151,7 +151,9 @@ BEGIN
     FROM 
         versions AS v
     WHERE 
-        v.package_id = _package_id;
+        v.package_id = _package_id
+    ORDER BY
+        v.created_at DESC;
 END;
 $$
 LANGUAGE plpgsql;

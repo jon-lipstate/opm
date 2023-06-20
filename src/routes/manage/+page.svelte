@@ -1,9 +1,23 @@
 <script>
 	import { page } from '$app/stores';
 	import Slider from '$components/slider.svelte';
+
 	export let pkgs = $page.data.pkgs ?? [];
+
 	async function deleteVersion(id) {
 		console.warn('del id', id);
+		const response = await fetch('/api/packages/versions', {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ id }),
+			credentials: 'include'
+		});
+
+		if (response.ok) {
+			pkgs = await refreshPackages();
+		}
 	}
 	async function deletePackage(id) {
 		const response = await fetch('/api/packages', {

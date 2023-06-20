@@ -86,7 +86,7 @@ export function extractHostOwnerAndRepo(urlString) {
 			throw new Error('Invalid URL');
 		}
 
-		const repo_name = pathParts.pop(); // The last part of the path is the repo
+		const repo_name = pathParts.pop()!; // The last part of the path is the repo
 		const owner_name = pathParts.join('/'); // The rest of the path is the owner
 
 		return { host_name, owner_name, repo_name };

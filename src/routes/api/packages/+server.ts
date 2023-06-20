@@ -27,14 +27,33 @@ export async function GET(event) {
 }
 
 export async function POST(event) {
+	let pkg;
+	let userId = -1;
+	let host_name: String;
+	let owner_name: String;
+	let repo_name: String;
 	try {
-		let pkg = JSON.parse(await event.request.text());
-		const { size_kb, compiler, commit_hash, readme_contents, token } = pkg;
+		pkg = await event.request.json();
+	} catch (e) {
+		throw error(400, 'Unable to parse incoming json');
+	}
+	try {
+		const token = pkg.token;
+		const idRes = await sql`select * from public.verify_token(${token})`;
+		userId = idRes[0].verify_token;
+	} catch (e) {
+		throw error(401, 'Invalid or Revoked CLI-Token');
+	}
+	try {
+		({ host_name, owner_name, repo_name } = extractHostOwnerAndRepo(pkg.userData.url));
+	} catch (e) {
+		throw error(400, 'Unable to parse url, expected host/owner/repo (eg `https://the_host.com/the_owner/the_repo`)');
+	}
+
+	try {
+		const { size_kb, compiler, commit_hash, readme_contents } = pkg;
 		const { url, readme, description, version, license, keywords, dependencies } = pkg.userData;
 		const { host_name, owner_name, repo_name } = extractHostOwnerAndRepo(url);
-		//
-		const idRes = await sql`select * from public.verify_token(${token})`;
-		const userId: number = idRes[0].verify_token;
 		//
 		let errors: string[] = [];
 		//
@@ -111,7 +130,7 @@ export async function POST(event) {
 
 		if (errors.length != 0) {
 			console.warn(errors);
-			return json({ errors: errors.join('\n') }, { status: 400 });
+			return json({ message: errors.join('\n') }, { status: 400 });
 		}
 		//@ts-ignore
 		const createRes = await sql`call upsert_full_package(
@@ -130,18 +149,14 @@ export async function POST(event) {
 			ARRAY[${sql.array(keywords)}],
 			${depVersionIds}::INTEGER[]
 			)`;
-		return json({}, { status: 201 });
-		//
-
+		return json({ message: 'Successful Upsert' }, { status: 201 });
 		//
 	} catch (err: any) {
-		console.warn('Package Create Error', { message: err });
+		console.warn('Package Create Error', err);
 		if (!err.status) {
-			return json({ error: 'RESERVED PACKAGE' }, { status: 400 });
-		} else {
-			console.error('Error inserting package details', err);
-			throw error(503, { message: err });
+			console.error('UNKNOWN ERROR REASON');
 		}
+		throw error(503, { message: err });
 	}
 }
 

@@ -1,5 +1,5 @@
 {
-	version: "0.0.1-alpha",
+	version: "0.0.2-alpha",
 	description: "Odin Package Registry (DEMO/TEMP LISTING :: NOT ODIN Code)",
 	url: "https://github.com/jon-lipstate/opm",
 	readme: "README.md",

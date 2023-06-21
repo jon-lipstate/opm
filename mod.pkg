@@ -6,6 +6,6 @@
 	license: "BSD-3",
 	keywords:["OPM"],
 	dependencies: {
-		"github.com/jon-lipstate/opm_cli": "0.0.5-alpha",
+		"github.com/jon-lipstate/opm_cli": "0.0.6-alpha",
 	},
 }

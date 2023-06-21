@@ -21,8 +21,21 @@ export async function GET(event) {
 		const userId = await getUserId(login, session.accessToken);
 		pkgs = await sql`SELECT id,host_name,owner_name,repo_name,description FROM packages where owner_id=${userId}`;
 		for (let i = 0; i < pkgs.length; i++) {
-			const versions =
-				await sql`SELECT id,version,license,commit_hash,insecure FROM versions where package_id=${pkgs[i].id}`;
+			const versions = await sql`
+						SELECT 
+							v.id,
+							v.version,
+							v.license,
+							v.commit_hash,
+							v.insecure,
+							EXISTS (
+								SELECT 1 FROM package_dependencies pd WHERE pd.version_id = v.id
+							) AS has_deps
+						FROM 
+							versions v
+						WHERE 
+							v.package_id=${pkgs[i].id}
+					`;
 			pkgs[i].versions = versions ?? [];
 		}
 		return json(pkgs);
@@ -42,9 +55,10 @@ export async function POST(event) {
 	let owner_name: String;
 	let repo_name: String;
 	try {
+		console.warn(event.request);
 		pkg = await event.request.json();
 	} catch (e) {
-		throw error(400, 'Unable to parse incoming json');
+		throw error(400, `Failed to parse JSON: ${e}.`);
 	}
 	try {
 		const token = pkg.token;

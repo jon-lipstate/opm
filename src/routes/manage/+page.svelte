@@ -55,7 +55,10 @@
 					</summary>
 					<ul class="expanded-list my-4">
 						<td>
-							<button on:click={() => deletePackage(pkg.id)} disabled={!enableDeletion}>Delete Package</button>
+							<button
+								on:click={() => deletePackage(pkg.id)}
+								disabled={!enableDeletion || pkg.versions.any((x) => x.has_deps)}>Delete Package</button
+							>
 							<Slider bind:checked={enableDeletion} label="Enable Package Deletion" />
 							<!-- todo: either place button+slider in component, or find non janky way to fix the paired unlock of delete btn -->
 						</td>
@@ -73,10 +76,12 @@
 								{#each pkg.versions as v}
 									<tr>
 										<td>{v.version}</td>
-										<td>{v.license}</td>
+										<td>{v.license} </td>
 										<!-- <td>{v.insecure}</td> -->
 										<td title={pkg.versions.length < 2 ? 'Cannot Delete only version of a package' : ''}>
-											<button on:click={() => deleteVersion(v.id)} disabled={pkg.versions.length < 2}>Delete</button>
+											<button on:click={() => deleteVersion(v.id)} disabled={pkg.versions.length < 2 || v.has_deps}
+												>Delete</button
+											>
 										</td>
 									</tr>
 								{/each}

@@ -29,7 +29,7 @@ export async function GET(event) {
 							v.commit_hash,
 							v.insecure,
 							EXISTS (
-								SELECT 1 FROM package_dependencies pd WHERE pd.version_id = v.id
+								SELECT 1 FROM package_dependencies pd WHERE pd.depends_on_id = v.id
 							) AS has_deps
 						FROM 
 							versions v

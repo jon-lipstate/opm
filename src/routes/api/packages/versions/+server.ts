@@ -10,7 +10,7 @@ export async function DELETE(event) {
 	try {
 		const userId = await getUserId(login, session.accessToken);
 		// Check if the version exists in package_dependencies
-		const depCheck = await sql`SELECT 1 FROM package_dependencies WHERE version_id=${id}`;
+		const depCheck = await sql`SELECT 1 FROM package_dependencies WHERE depends_on_id=${id}`;
 
 		if (depCheck.length > 0) {
 			// The version is a dependency, handle this situation accordingly

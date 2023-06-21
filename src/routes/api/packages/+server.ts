@@ -116,17 +116,21 @@ export async function POST(event) {
 		let depVersionIds: Number[] = [];
 		// this verifies deps are good:
 		if (dependencies) {
-			const deps = Object.keys(dependencies).map((x) => {
-				let [host_name, owner_name, repo_name] = x.split('/');
-				let version = dependencies[x];
-				return { host_name, owner_name, repo_name, version };
+			const deps = dependencies.map((x) => {
+				try {
+					const { host_name, owner_name, repo_name } = extractHostOwnerAndRepo(x.name);
+					let version = x.version;
+					return { host_name, owner_name, repo_name, version };
+				} catch (ex) {
+					throw error(400, `Unable to parse dependancy: ${x.name}`);
+				}
 			});
 			//@ts-ignore
 			const pkgIdsRes = await sql`SELECT * FROM get_package_ids(${deps})`;
 			for (let i = 0; i < deps.length; i++) {
-				const id = pkgIdsRes[i].package_id;
+				const id = pkgIdsRes[i]?.package_id;
 				if (!id) {
-					errors.push(`Invalid package ${deps}`);
+					errors.push(`Invalid package ${JSON.stringify(deps[i])}`);
 				}
 				//@ts-ignore
 				deps[i].id = id;
@@ -134,10 +138,10 @@ export async function POST(event) {
 			//@ts-ignore
 			const versionIdsRes = await sql`SELECT * FROM get_version_ids(${deps})`;
 			for (let i = 0; i < deps.length; i++) {
-				const vid = versionIdsRes[i].version_id;
+				const vid = versionIdsRes[i]?.version_id;
 				const dep = deps[i];
 				if (!vid && vid !== 0) {
-					errors.push(`Invalid Version Id ${dep}`);
+					errors.push(`Invalid Version Id ${JSON.stringify(dep)}`);
 				}
 			}
 			depVersionIds = versionIdsRes.map((x) => x.version_id);
@@ -167,6 +171,9 @@ export async function POST(event) {
 		return json({ message: 'Successful Upsert' }, { status: 201 });
 		//
 	} catch (err: any) {
+		if (err.status == 400) {
+			throw err;
+		}
 		const errStr = String(err).replace('PostgresError: ', '');
 		if (errStr.includes('Version')) {
 			throw error(400, { message: errStr }); // cannot replace a version

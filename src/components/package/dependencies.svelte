@@ -16,7 +16,7 @@
 	<pre>{JSON.stringify(flat, null, 2)}</pre> -->
 	<!-- License Summary -->
 	<div>
-		<h2>Licenses</h2>
+		<h2>License Groups</h2>
 		<ul>
 			{#each licenses as lic, i (lic)}
 				<details>
@@ -34,7 +34,7 @@
 	</div>
 	<!-- Display Table -->
 	<div>
-		<h2>Dependency Summary</h2>
+		<h2>Flat Dependency List</h2>
 		<!-- <pre>{JSON.stringify(flat, null, 2)}</pre> -->
 
 		<table>
@@ -46,7 +46,7 @@
 					<th>Version</th>
 					<th>License</th>
 					<th>Updated</th>
-					<th>Security</th>
+					<!-- <th>Security</th> -->
 				</tr>
 			</thead>
 			<tbody>
@@ -63,11 +63,11 @@
 						{:else}
 							<td>{timeAgo(dep.last_updated)}</td>
 						{/if}
-						{#if dep.insecure}
+						<!-- {#if dep.insecure}
 							<td class="insecure-warning">INSECURE</td>
 						{:else}
 							<td>No Reports</td>
-						{/if}
+						{/if} -->
 					</tr>
 				{/each}
 			</tbody>
@@ -96,10 +96,10 @@
 		color: orange;
 		font-weight: 900;
 	}
-	.insecure-warning {
+	/* .insecure-warning {
 		color: red;
 		font-weight: 900;
-	}
+	} */
 	h2 {
 		/* color: var(--color-theme-1); */
 		margin-bottom: 0.2rem;

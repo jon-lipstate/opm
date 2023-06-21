@@ -1,8 +1,9 @@
-export function generateRandomName(length: number): string {
-	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+export function generateRandomString(length: number): string {
+	const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 	let result = '';
 	for (let i = 0; i < length; i++) {
-		result += chars.charAt(Math.floor(Math.random() * chars.length));
+		const randomIndex = Math.floor(Math.random() * characters.length);
+		result += characters[randomIndex];
 	}
 	return result;
 }
@@ -46,18 +47,17 @@ export function isStale(date): boolean {
 	return difference > ninetyDaysInMilliseconds;
 }
 
-export function generateSlug(str: string): string {
-	return str
-		.toLowerCase() // convert to lower case
-		.replace(/\s+/g, '-') // replace spaces with hyphens
-		.replace(/[^\w\-]+/g, '') // non-word [a-z0-9_], non-hyphen characters
-		.replace(/\-\-+/g, '-') // replace multiple hyphens with a single hyphen
-		.replace(/^-+/, '') //  leading hyphens
-		.replace(/-+$/, ''); //  trailing hyphens
-}
+// export function generateSlug(str: string): string {
+// 	return str
+// 		.toLowerCase() // convert to lower case
+// 		.replace(/\s+/g, '-') // replace spaces with hyphens
+// 		.replace(/[^\w\-]+/g, '') // non-word [a-z0-9_], non-hyphen characters
+// 		.replace(/\-\-+/g, '-') // replace multiple hyphens with a single hyphen
+// 		.replace(/^-+/, '') //  leading hyphens
+// 		.replace(/-+$/, ''); //  trailing hyphens
+// }
 
 export function isValidSemver(version) {
-	// ban the v, we want to store without
 	const semverRegex = new RegExp(
 		/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(\+[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*)?$/
 	);
@@ -70,7 +70,12 @@ export function isValidSemver(version) {
  */
 export function extractHostOwnerAndRepo(urlString) {
 	try {
-		const url = new URL(urlString);
+		let url: URL;
+		if (!urlString.includes('http')) {
+			url = new URL('https://' + urlString); // this seems so janky
+		} else {
+			url = new URL(urlString);
+		}
 
 		// Remove potential credentials
 		url.username = '';
@@ -81,28 +86,16 @@ export function extractHostOwnerAndRepo(urlString) {
 		// The path should look like /user/repo, so after splitting
 		// the owner should be all parts up to the last part, and repo the last part
 		const pathParts = url.pathname.split('/').filter(Boolean); // filter(Boolean) removes empty strings
-
 		if (pathParts.length < 2) {
-			throw new Error('Invalid URL');
+			throw new Error('Invalid URL - Insufficient parts, expected HOST / OWNER / REPO');
 		}
 
 		const repo_name = pathParts.pop()!; // The last part of the path is the repo
 		const owner_name = pathParts.join('/'); // The rest of the path is the owner
-
 		return { host_name, owner_name, repo_name };
 	} catch (error: any) {
 		const e = `Failed to parse URL: ${error.message}`;
 		console.error(e);
 		throw Error(e);
 	}
-}
-
-export function generateRandomString(length: number): string {
-	const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-	let result = '';
-	for (let i = 0; i < length; i++) {
-		const randomIndex = Math.floor(Math.random() * characters.length);
-		result += characters[randomIndex];
-	}
-	return result;
 }

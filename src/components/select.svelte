@@ -1,5 +1,5 @@
 <script>
-	import { generateRandomName } from '$lib/utils';
+	import { generateRandomString } from '$lib/utils';
 	import { createEventDispatcher } from 'svelte';
 	const dispatch = createEventDispatcher();
 	//
@@ -16,7 +16,7 @@
 	function handleClick(event) {
 		dispatch('click', event);
 	}
-	const name = `${label}_${generateRandomName(8)}`;
+	const name = `${label}_${generateRandomString(8)}`;
 </script>
 
 <label for={name}>{label}</label>

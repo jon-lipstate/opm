@@ -1,6 +1,10 @@
 # OPM - Odin Package Manager
 
-EXPERIMEANTAL / EARLY DEVELOPMENT
+**EARLY DEVELOPMENT / ALPHA Testing**
+
+Frontend/Server: SvelteKit
+Db: Postgres
+CLI: Odin
 
 ## Dev Server
 

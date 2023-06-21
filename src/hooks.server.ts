@@ -3,6 +3,7 @@ import GitHub from '@auth/core/providers/github';
 import { GITHUB_ID, GITHUB_SECRET, AUTH_SECRET } from '$env/static/private';
 import axios from 'axios';
 import type { DBUser } from './routes/api/user/+server';
+
 //
 let eventFetch;
 
@@ -36,7 +37,8 @@ const svaData = {
 						gh_access_token: account.access_token!,
 						gh_avatar: user.avatar_url,
 						gh_id: user.id,
-						gh_created_at: user.created_at
+						gh_created_at: user.created_at,
+						id: -1
 					};
 					const dbRes = await eventFetch(`/api/user`, {
 						method: 'POST',
@@ -45,14 +47,16 @@ const svaData = {
 					});
 					if (dbRes.status != 200) {
 						const msg = await dbRes.json();
-						token = null; // how to pass to the client ..?
+						token = null; // how to pass to the client that we're hosed ..?
 						throw msg;
 					} else {
+						const body = await dbRes.json();
 						// Save the access token and refresh token in the JWT on the initial login
 						const augmentedToken = {
 							...token,
 							login: user.login,
-							access_token: account.access_token
+							access_token: account.access_token,
+							id: body.id
 						};
 						delete augmentedToken.name;
 						delete augmentedToken.sub; // not sure what this is?
@@ -65,6 +69,8 @@ const svaData = {
 			return token;
 		},
 		async session({ session, token }) {
+			//@ts-ignore
+			session.user.id = token.id;
 			//@ts-ignore
 			session.user.name = token.login;
 			//@ts-ignore

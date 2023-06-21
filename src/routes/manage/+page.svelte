@@ -5,7 +5,6 @@
 	export let pkgs = $page.data.pkgs ?? [];
 
 	async function deleteVersion(id) {
-		console.warn('del id', id);
 		const response = await fetch('/api/packages/versions', {
 			method: 'DELETE',
 			headers: {

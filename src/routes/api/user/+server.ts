@@ -6,6 +6,7 @@ export type DBUser = {
 	gh_avatar: URL;
 	gh_id: number;
 	gh_created_at: string;
+	id: number;
 };
 export async function POST(event) {
 	//@ts-ignore

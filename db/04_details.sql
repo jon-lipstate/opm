@@ -171,7 +171,8 @@ RETURNS TABLE(
     keywords TEXT[],
     bookmarks INTEGER,
     url TEXT,
-    authors TEXT[]
+    authors TEXT[],
+    gh_login TEXT
 )
 AS $$
 BEGIN
@@ -191,14 +192,18 @@ BEGIN
             FROM package_authors pa
             INNER JOIN users a ON pa.author_id = a.id
             WHERE pa.package_id = _package_id
-        ) AS authors
+        ) AS authors,
+        u.gh_login
     FROM 
         packages p
+    INNER JOIN
+        users u ON p.owner_id = u.id
     WHERE 
         p.id = _package_id;
 END;
 $$
 LANGUAGE plpgsql;
+
 
 
 -----------------------------------------------------------------------------------------------------------------

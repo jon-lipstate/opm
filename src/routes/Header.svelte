@@ -15,14 +15,11 @@
 		</div>
 		<!-- Right Items -->
 		<div class="right-items">
-			{#if !$page.data.session}
-				<GithubLogin />
-			{:else}
-				{#if $page.data.session.user?.image}
-					<span style="background-image: url('{$page.data.session.user.image}')" class="avatar" />
-				{/if}
-				<Menu />
+			{#if !!$page.data.session?.user?.image}
+				<span style="background-image: url('{$page.data.session.user.image}')" class="avatar" />
 			{/if}
+			<Menu />
+
 			<!-- <a href="/login"> Login </a> -->
 		</div>
 	</nav>

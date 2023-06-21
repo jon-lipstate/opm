@@ -2,7 +2,16 @@ import { getUserId, getAuth } from '$api/auth';
 import sql from '$lib/database';
 import { extractHostOwnerAndRepo, isValidSemver } from '$lib/utils.js';
 import { error, json } from '@sveltejs/kit';
+import axios from 'axios';
 
+async function isValidUrl(url) {
+	try {
+		const response = await axios.head(url);
+		return response.status === 200;
+	} catch (error) {
+		return false;
+	}
+}
 export async function GET(event) {
 	// TODO: allow for query string to select other users, eg browse by owner
 	//@ts-ignore
@@ -49,11 +58,17 @@ export async function POST(event) {
 	} catch (e) {
 		throw error(400, 'Unable to parse url, expected host/owner/repo (eg `https://the_host.com/the_owner/the_repo`)');
 	}
-
+	try {
+		const urlResult = await isValidUrl(pkg.userData.url);
+		if (!urlResult) {
+			throw Error('Invalid URL');
+		}
+	} catch (e) {
+		throw error(400, 'Invalid Package URL');
+	}
 	try {
 		const { size_kb, compiler, commit_hash, readme_contents } = pkg;
 		const { url, readme, description, version, license, keywords, dependencies } = pkg.userData;
-		const { host_name, owner_name, repo_name } = extractHostOwnerAndRepo(url);
 		//
 		let errors: string[] = [];
 		//
@@ -152,11 +167,12 @@ export async function POST(event) {
 		return json({ message: 'Successful Upsert' }, { status: 201 });
 		//
 	} catch (err: any) {
-		console.warn('Package Create Error', err);
-		if (!err.status) {
-			console.error('UNKNOWN ERROR REASON');
+		const errStr = String(err).replace('PostgresError: ', '');
+		if (errStr.includes('Version')) {
+			throw error(400, { message: errStr }); // cannot replace a version
+		} else {
+			throw error(503, { message: errStr });
 		}
-		throw error(503, { message: err });
 	}
 }
 

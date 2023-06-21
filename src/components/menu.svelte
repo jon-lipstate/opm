@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import gh from '$lib/images/github.svg';
 
+	$: isLoggedIn = !!$page.data.session;
 	let isOpen = false;
 	function toggleMenu() {
 		isOpen = !isOpen;
@@ -35,15 +38,20 @@
 
 	{#if isOpen}
 		<div class="menu">
+			{#if !isLoggedIn}
+				<a on:click={toggleMenu} href="/auth/signin"> OAuth Login </a>
+			{/if}
 			<a on:click={toggleMenu} href="/">Search</a>
 			<a on:click={toggleMenu} href="/browse">Browse Packages</a>
 			<!-- <a on:click={toggleMenu} href="/new">New Package</a> -->
-			<a on:click={toggleMenu} href="/manage">Manage Packages</a>
-			<!-- {#if $isAdmin}
+			{#if isLoggedIn}
+				<a on:click={toggleMenu} href="/manage">Manage Packages</a>
+				<!-- {#if $isAdmin}
           <a on:click={toggleMenu} href="/admin">Admin</a>
       {/if} -->
-			<a on:click={toggleMenu} href="/account">Account Tokens</a>
-			<a on:click={handleLogout} href="/auth/signout">Logout</a>
+				<a on:click={toggleMenu} href="/account">Account Tokens</a>
+				<a on:click={handleLogout} href="/auth/signout">Logout</a>
+			{/if}
 		</div>
 	{/if}
 </nav>

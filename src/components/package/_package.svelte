@@ -71,7 +71,12 @@
 						<td>{info.dependency_count}</td>
 						<td>{info.compiler}</td>
 						<td>{info.license}</td>
-						<td class="mono">{info.commit_hash}</td>
+						<td class="mono">
+							<!-- TODO: Verify for other hosts what the /commit/ path is -->
+							<a href="https://{details.host_name}/{details.owner_name}/{details.repo_name}/commit/{info.commit_hash}">
+								{info.commit_hash.slice(0, 8)}
+							</a>
+						</td>
 						<!-- <td>{info.insecure}</td>
 						<td>{info.has_insecure_dependency}</td> -->
 					</tr>

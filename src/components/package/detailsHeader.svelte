@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Nametag from '$components/nametag.svelte';
 	import Tags from '$components/tags.svelte';
 	import leaf from '$lib/icons/leaf.svg';
 	import yellowSand from '$lib/icons/yellow-sand.svg';
@@ -44,14 +45,17 @@
 			</span>
 			|
 			<span>{version.size_kb} kb</span>
-
 			<!-- <span>Used By: <a href="#">{details.usedBy?.length}</a></span> -->
 		</div>
 	</div>
 
 	<div class="row">
-		<!-- <a class="repo-link" href={details.links.url}> <img src={gh} alt="github logo" class="github-logo" />Repository</a> -->
-		<Tags tags={details.keywords} />
+		<span>
+			{#if details.gh_login != details.owner_name}
+				<Nametag name={details.gh_login} />
+			{/if}
+			<Tags tags={details.keywords} />
+		</span>
 		<div>
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			{#if version.dependency_count == 0}

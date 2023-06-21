@@ -27,6 +27,36 @@ BEGIN
 END;
 $$;
 -----------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.insert_version CASCADE;
+CREATE OR REPLACE FUNCTION insert_version(
+    _package_id INTEGER,
+    _version TEXT,
+    _license TEXT,
+    _size_kb INTEGER,
+    _published_by INTEGER,
+    _compiler TEXT,
+    _commit_hash TEXT,
+    _readme TEXT
+)
+RETURNS INTEGER
+LANGUAGE plpgsql AS $$
+DECLARE 
+    _version_id INTEGER;
+BEGIN
+    INSERT INTO versions(package_id, version, license, size_kb, published_by, compiler, commit_hash, readme)
+    VALUES (_package_id, _version, _license, _size_kb, _published_by, _compiler, _commit_hash, _readme)
+    ON CONFLICT (package_id, version)
+    DO NOTHING
+    RETURNING id INTO _version_id;
+
+    IF _version_id IS NULL THEN
+        RAISE EXCEPTION 'Version `%` already exists for package id %', _version, _package_id;
+    END IF;
+
+    RETURN _version_id;
+END;
+$$;
+-- NOT in use atm:
 DROP FUNCTION IF EXISTS public.upsert_version CASCADE;
 CREATE OR REPLACE FUNCTION upsert_version(
     _package_id INTEGER,
@@ -121,7 +151,7 @@ BEGIN
     _package_id := upsert_package(_owner_id, _host_name, _owner_name, _repo_name, _description, _url, 'active'::package_state);
 
     -- Insert into versions table or update an existing one
-    _version_id := upsert_version(_package_id, _version, _license, _size_kb, _owner_id, _odin_compiler, _commit_hash,_readme);
+    _version_id := insert_version(_package_id, _version, _license, _size_kb, _owner_id, _odin_compiler, _commit_hash,_readme);
 
     -- Insert keywords and their relation to the package or update existing ones
     PERFORM upsert_keywords(_package_id, _keywords);

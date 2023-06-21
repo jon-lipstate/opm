@@ -22,11 +22,10 @@ declare global {
 			dependency_count: string;
 			keywords: string[];
 		};
-
 		type PackageDetails = {
 			id: number;
 			host_name: string;
-			owner_name: string;
+			owner_name: string; // theis is the domain-owner, not neccesarily the gh login
 			repo_name: string;
 			description: string;
 			state: string;
@@ -34,6 +33,7 @@ declare global {
 			bookmarks: number;
 			url: string; // http repo url
 			authors: string[]?;
+			gh_login: string;
 			versions: VersionDetails[]; // appended by seperate query
 			// usedBy: string[]?; // appended by seperate query
 		};

@@ -18,14 +18,13 @@ export async function getAuth(event): Promise<auth> {
 	};
 }
 // TODO: move this to be part of the user's auth token...
-export async function getUserId(userName, authToken): Promise<number> {
+export async function getUserId(gh_id): Promise<number> {
 	try {
 		const userRes = await sql`
 			SELECT id FROM users
-			WHERE gh_login = ${userName}
-			AND gh_access_token = ${authToken}
+			WHERE gh_id = ${gh_id}
 		`;
-		return userRes[0].id;
+		return userRes[0]?.id;
 	} catch (err) {
 		console.error('User Validation Error\n', err);
 		throw error(401, `User Auth Error:, ${err}`);

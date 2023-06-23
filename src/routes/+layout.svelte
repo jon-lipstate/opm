@@ -11,7 +11,9 @@
 <div class="app">
 	<Header />
 	<img id="fjord" src={fjord} alt="fjord" />
-	<span class="warning">WARNING: In Development - No Data is Persisted</span>
+	<span class="alpha-warning">
+		<a href="https://github.com/jon-lipstate/opm/issues">Alpha Release</a>
+	</span>
 
 	<main>
 		<slot />
@@ -25,7 +27,7 @@
 </div>
 
 <style>
-	.warning {
+	.alpha-warning {
 		color: rgba(217, 0, 0, 0.709);
 		text-align: center;
 		margin-top: 1rem;

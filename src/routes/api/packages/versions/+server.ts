@@ -1,4 +1,4 @@
-import { getUserId, getAuth } from '$api/auth';
+import { getAuth } from '$api/auth';
 import sql from '$lib/database';
 import { error, json } from '@sveltejs/kit';
 
@@ -8,7 +8,7 @@ export async function DELETE(event) {
 	//@ts-ignore
 	const { login, session } = await getAuth(event);
 	try {
-		const userId = await getUserId(login, session.accessToken);
+		const userId = session.user.id;
 		// Check if the version exists in package_dependencies
 		const depCheck = await sql`SELECT 1 FROM package_dependencies WHERE depends_on_id=${id}`;
 

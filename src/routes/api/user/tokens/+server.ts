@@ -8,7 +8,7 @@ export async function GET(event) {
 	const { login, session } = await getAuth(event);
 	let tokens;
 	try {
-		const userId = await getUserId(login, session.accessToken);
+		const userId = session.user.id;
 		tokens = await sql`SELECT id, name, created_at, last_touched, revoked FROM api_tokens where user_id=${userId}`;
 		return json(tokens);
 	} catch (err: any) {
@@ -22,7 +22,7 @@ export async function GET(event) {
 
 export async function POST(event) {
 	const body = await event.request.json();
-	const { login, session } = await getAuth(event);
+	const { session } = await getAuth(event);
 	const tokenName = body.tokenName;
 	const tokenValue = generateRandomString(32);
 	const tokenScopes = body.scopes; // todo: configure scopes
@@ -30,7 +30,7 @@ export async function POST(event) {
 		throw error(400, 'No Token Name Supplied');
 	}
 	try {
-		const userId = await getUserId(login, session.accessToken);
+		const userId = session.user.id;
 		await sql`SELECT * FROM insert_token(${userId},${tokenName},${tokenValue})`;
 		return json({ token: tokenValue });
 	} catch (err: any) {
@@ -48,7 +48,7 @@ export async function DELETE(event) {
 	//@ts-ignore
 	const { login, session } = await getAuth(event);
 	try {
-		const userId = await getUserId(login, session.accessToken);
+		const userId = session.user.id;
 		await sql`DELETE from api_tokens where user_id=${userId} AND id=${id}`;
 		return json({ status: 200 });
 	} catch (err: any) {

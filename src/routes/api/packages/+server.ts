@@ -1,4 +1,4 @@
-import { getUserId, getAuth } from '$api/auth';
+import { getAuth } from '$api/auth';
 import sql from '$lib/database';
 import { extractHostOwnerAndRepo, isValidSemver } from '$lib/utils.js';
 import { error, json } from '@sveltejs/kit';
@@ -15,10 +15,10 @@ async function isValidUrl(url) {
 export async function GET(event) {
 	// TODO: allow for query string to select other users, eg browse by owner
 	//@ts-ignore
-	const { login, session } = await getAuth(event);
+	const { session } = await getAuth(event);
 	let pkgs;
 	try {
-		const userId = await getUserId(login, session.accessToken);
+		const userId = session.user.id;
 		pkgs = await sql`SELECT id,host_name,owner_name,repo_name,description FROM packages where owner_id=${userId}`;
 		for (let i = 0; i < pkgs.length; i++) {
 			const versions = await sql`
@@ -201,9 +201,9 @@ export async function DELETE(event) {
 	const body = await event.request.json();
 	const id = body.id;
 	//@ts-ignore
-	const { login, session } = await getAuth(event);
+	const { session } = await getAuth(event);
 	try {
-		const userId = await getUserId(login, session.accessToken);
+		const userId = session.user.id;
 
 		await sql`DELETE from packages where owner_id=${userId} AND id=${id}`;
 		return json({ status: 200 });

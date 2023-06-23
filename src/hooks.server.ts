@@ -3,6 +3,7 @@ import GitHub from '@auth/core/providers/github';
 import { GITHUB_ID, GITHUB_SECRET, AUTH_SECRET } from '$env/static/private';
 import axios from 'axios';
 import type { DBUser } from './routes/api/user/+server';
+import { getUserId } from '$api/auth';
 
 //
 let eventFetch;
@@ -40,6 +41,8 @@ const svaData = {
 						gh_created_at: user.created_at,
 						id: -1
 					};
+					const id = await getUserId(user.id);
+					db_user.id = id[0];
 					const dbRes = await eventFetch(`/api/user`, {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },

@@ -41,14 +41,18 @@ const svaData = {
 						gh_created_at: user.created_at,
 						id: -1
 					};
-					const id = await getUserId(user.id);
-					db_user.id = id[0];
 					const dbRes = await eventFetch(`/api/user`, {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify(db_user)
 					});
+					console.warn('dbRes', dbRes);
+
+					const id = await getUserId(user.id);
+					db_user.id = id[0];
+
 					if (dbRes.status != 200) {
+						console.warn('JWT Not OK', dbRes.status);
 						const msg = await dbRes.json();
 						token = null; // how to pass to the client that we're hosed ..?
 						throw msg;

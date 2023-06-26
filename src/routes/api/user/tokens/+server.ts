@@ -1,11 +1,11 @@
 import { error, json } from '@sveltejs/kit';
 import sql from '$lib/database';
-import { getAuth, getUserId } from '$api/auth.js';
+import { getAuth } from '$api/auth.js';
 import { generateRandomString } from '$lib/utils.js';
 
 export async function GET(event) {
 	//@ts-ignore
-	const { login, session } = await getAuth(event);
+	const { session } = await getAuth(event);
 	let tokens;
 	try {
 		const userId = session.user.id;

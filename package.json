@@ -35,8 +35,8 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@auth/core": "latest",
-		"@auth/sveltekit": "latest",
+		"@auth/core": "0.8.4",
+		"@auth/sveltekit": "0.3.3",
 		"@macfja/svelte-persistent-store": "^2.3.0",
 		"@vercel/analytics": "^1.0.1",
 		"axios": "^1.4.0",

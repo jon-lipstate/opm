@@ -23,7 +23,7 @@
 	--color-theme-1: #F29154;
 	--color-theme-2: #ef7a30;
 	--color-theme-3: #4075a6;
-	--color-theme-4: #90a4b7;
+	--color-theme-4: #d7dfe5;
 	--color-text: rgb(199, 205, 211);
 	--color-odin-blue: #3882d2;
 	--column-width: 42rem;
@@ -81,7 +81,7 @@
 
 body {
 	margin: 0;
-	background-color: #343A40;
+	/* background-color: #343A40; */
 	/* background-image: url("../lib/images/field.png"); */
 	background-size: cover;
 	/* min-height: 100vh; */
@@ -89,8 +89,11 @@ body {
 	background-attachment: fixed;
 	/* background-color: var(--color-bg-1); */
 	/* background-color: rgba(255, 255, 255, 0.45); */
-	background-size: 100vw 100vh;
+	/* background-size: 100vw 100vh; */
 	/* background-image: linear-gradient(180deg, var(--color-bg-0) 0%, var(--color-bg-2) 10%); */
+	background-position: center;
+	backdrop-filter: blur(6px);
+
 }
 ul{ list-style-type: none;}
 li {

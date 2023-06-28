@@ -28,8 +28,6 @@
 <style>
 	body {
 		background-image: url({fjord});
-		background-size: cover;
-		background-position: center;
 	}
 
 	.alpha-warning {
@@ -43,7 +41,7 @@
 		display: flex;
 		flex-direction: column;
 		min-height: 100vh;
-		background-color: rgba(52, 58, 64, 0.8);;
+		background-color: rgba(52, 58, 64, 0.8);
 	}
 
 	main {

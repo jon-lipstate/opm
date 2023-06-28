@@ -10,7 +10,6 @@
 
 <div class="app">
 	<Header />
-	<img id="fjord" src={fjord} alt="fjord" />
 	<span class="alpha-warning">
 		<a href="https://github.com/jon-lipstate/opm/issues">Alpha Release</a>
 	</span>
@@ -27,28 +26,22 @@
 </div>
 
 <style>
+	body {
+		background-image: url({fjord});
+	}
+
 	.alpha-warning {
 		color: rgba(217, 0, 0, 0.709);
 		text-align: center;
 		margin-top: 1rem;
 		font-style: italic;
 	}
-	#fjord {
-		opacity: 0.05;
-		color: rgba(255, 0, 0, 255);
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		width: 100%;
-		text-align: center;
-		pointer-events: none;
-	}
 
 	.app {
 		display: flex;
 		flex-direction: column;
 		min-height: 100vh;
+		background-color: rgba(52, 58, 64, 0.8);
 	}
 
 	main {

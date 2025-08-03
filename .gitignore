@@ -1,0 +1,4 @@
+.env
+*claude*
+_tmp
+.vscode

@@ -1,0 +1,35 @@
+// app global css in SCSS form
+
+// Override Quasar variables with Odin theme
+$primary: #3882d2;
+$secondary: #fa4;
+$accent: #d66a00;
+$dark: #0d1117;
+
+// Custom classes
+.text-odin-light {
+  color: #e0f0ff;
+}
+
+// Search input styling
+.search-input {
+  .q-field__control {
+    background-color: white !important;
+    
+    body.body--dark & {
+      background-color: var(--dark-code) !important;
+      color: var(--dark-light) !important;
+    }
+  }
+}
+
+// Package card badges
+.q-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  font-weight: 500;
+  
+  &.q-badge--outline {
+    border-width: 1px;
+  }
+}

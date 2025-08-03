@@ -1,0 +1,133 @@
+// Odin Language Color Theme
+:root {
+  // Main colors from Odin site
+  --odin-blue: #3882d2;
+  --odin-dark-blue: HSL(211, 63%, 32%);
+  --odin-orange: HSL(28, 86%, 42%);
+  --odin-pale-orange: #fa4;
+  
+  // Dark mode colors
+  --dark-border: #242f3f;
+  --dark-background: #0d1117;
+  --dark-third: #1c1c20;
+  --dark-code: #182028;
+  --dark-light: #e0f0ff;
+  
+  // Bootstrap-like colors adapted for Odin
+  --bs-light: #f8f9fa;
+  --bs-dark: #343a40;
+}
+
+// Override Quasar theme colors
+$primary: #3882d2;
+$secondary: #fa4;
+$accent: HSL(28, 86%, 42%);
+$dark: #0d1117;
+
+$positive: #21BA45;
+$negative: #C10015;
+$info: #31CCEC;
+$warning: #F2C037;
+
+// Custom classes matching Odin site
+.bg-odin-primary {
+  background-color: var(--odin-blue) !important;
+  color: white;
+}
+
+.bg-odin-dark {
+  background-color: var(--dark-background) !important;
+  color: var(--dark-light);
+}
+
+.text-odin-orange {
+  color: var(--odin-pale-orange) !important;
+}
+
+// Section styles from Odin site
+.section-style-1 {
+  background-color: #3882d2;
+  color: #f8f9fa;
+}
+
+.section-style-2 {
+  background-color: #f8f9fa;
+  color: #343a40;
+}
+
+.section-style-3 {
+  background-color: white;
+  color: #343a40;
+}
+
+// Dark mode overrides
+body.body--dark {
+  background-color: var(--dark-background);
+  color: var(--dark-light);
+  
+  .q-header {
+    background-color: var(--dark-border) !important;
+  }
+  
+  .q-card {
+    background-color: var(--dark-third);
+    color: var(--dark-light);
+  }
+  
+  .bg-grey-2 {
+    background-color: var(--dark-third) !important;
+  }
+  
+  .text-grey-7, .text-grey-6, .text-grey-5 {
+    color: var(--dark-light) !important;
+    opacity: 0.7;
+  }
+  
+  .q-input__control {
+    background-color: var(--dark-code) !important;
+    color: var(--dark-light) !important;
+  }
+  
+  .q-btn-toggle {
+    background-color: var(--dark-code) !important;
+  }
+  
+  a {
+    color: #7aade5;
+    
+    &:hover {
+      color: var(--odin-pale-orange);
+    }
+  }
+}
+
+// Link styles
+a {
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Custom component styles
+.odin-hero {
+  background-color: var(--odin-blue);
+  color: white;
+  
+  body.body--dark & {
+    background-color: var(--odin-dark-blue);
+  }
+}
+
+.odin-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    
+    body.body--dark & {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+  }
+}

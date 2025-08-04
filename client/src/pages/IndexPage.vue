@@ -15,7 +15,7 @@
 						style="opacity: 0.9"
 						v-show="!hasSearched && packages.length === 0"
 					>
-						Discover and share Odin libraries and showcases
+						Discover and share Odin libraries and projects
 					</p>
 
 					<!-- Search Box -->
@@ -53,7 +53,7 @@
 							:options="[
 								{ label: 'All', value: 'all' },
 								{ label: 'Libraries', value: 'library' },
-								{ label: 'Showcases', value: 'showcase' },
+								{ label: 'Projects', value: 'project' },
 							]"
 							@update:model-value="
 								() => {
@@ -124,7 +124,7 @@
 
 						<q-card-section class="q-pb-xs">
 							<router-link
-								:to="`/packages/${pkg.author?.alias || pkg.author?.username}/${pkg.slug}`"
+								:to="`/packages/${pkg.author?.slug || pkg.author?.username}/${pkg.slug}`"
 								class="text-h6 text-no-underline"
 								style="color: var(--odin-blue)"
 							>
@@ -135,7 +135,7 @@
 							<div class="row items-center q-mt-xs q-gutter-xs">
 								<q-badge
 									:color="pkg.type === 'library' ? 'primary' : 'orange'"
-									:outline="pkg.type === 'showcase'"
+									:outline="pkg.type === 'project'"
 									class="text-caption"
 								>
 									{{ pkg.type }}

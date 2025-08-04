@@ -16,15 +16,15 @@
 							hint="Your username from GitHub or Discord (cannot be changed)"
 						/>
 
-						<!-- Alias -->
+						<!-- User Slug -->
 						<q-input
-							v-model="form.alias"
-							label="URL Alias"
+							v-model="form.slug"
+							label="URL slug"
 							outlined
 							class="q-mb-md"
-							:rules="aliasRules"
+							:rules="slugRules"
 							hint="Used in package URLs. Must be unique and URL-safe (lowercase, letters, numbers, hyphens, underscores)"
-							@update:model-value="(val) => (form.alias = val?.toLowerCase())"
+							@update:model-value="(val) => (form.slug = val?.toLowerCase())"
 						>
 							<template v-slot:prepend>
 								<span class="text-caption text-grey-6">pkg-odin.org/packages/</span>
@@ -147,7 +147,7 @@ const apiStore = useApiStore()
 
 // Form data
 const form = ref({
-	alias: '',
+	slug: '',
 	display_name: '',
 	avatar_url: '',
 })
@@ -157,15 +157,17 @@ const loading = ref(false)
 const avatarError = ref(false)
 
 // Validation rules
-const aliasRules = [
-	(val) => !!val || 'Alias is required',
+const slugRules = [
+	(val) => !!val || 'slug is required',
 	(val) => val.length >= 3 || 'Must be at least 3 characters',
 	(val) => val.length <= 50 || 'Must be less than 50 characters',
-	(val) => /^[a-z0-9][a-z0-9-_]*[a-z0-9]$/.test(val) || 'Must start and end with a letter or number. Can contain hyphens and underscores.',
+	(val) =>
+		/^[a-z0-9][a-z0-9-_]*[a-z0-9]$/.test(val) ||
+		'Must start and end with a letter or number. Can contain hyphens and underscores.',
 	(val) => val === val.toLowerCase() || 'Must be lowercase',
 	async (val) => {
-		if (val === originalForm.value.alias) return true // No need to check if unchanged
-		return await checkAliasAvailability(val)
+		if (val === originalForm.value.slug) return true // No need to check if unchanged
+		return await checkSlugAvailability(val)
 	},
 ]
 
@@ -179,7 +181,7 @@ const avatarRules = [
 // Computed
 const hasChanges = computed(() => {
 	return (
-		form.value.alias !== originalForm.value.alias ||
+		form.value.slug !== originalForm.value.slug ||
 		form.value.display_name !== originalForm.value.display_name ||
 		form.value.avatar_url !== originalForm.value.avatar_url
 	)
@@ -194,15 +196,15 @@ const formatDate = (date) => {
 	})
 }
 
-const checkAliasAvailability = async (alias) => {
+const checkSlugAvailability = async (slug) => {
 	try {
-		const response = await apiStore.checkAliasAvailability(alias)
+		const response = await apiStore.checkSlugAvailability(slug)
 		if (!response.available) {
-			return response.reason || 'Alias is not available'
+			return response.reason || 'slug is not available'
 		}
 		return true
 	} catch (error) {
-		return 'Unable to check alias availability'
+		return 'Unable to check slug availability'
 	}
 }
 
@@ -212,8 +214,8 @@ const updateProfile = async () => {
 		const updates = {}
 
 		// Only include changed fields
-		if (form.value.alias !== originalForm.value.alias) {
-			updates.alias = form.value.alias
+		if (form.value.slug !== originalForm.value.slug) {
+			updates.slug = form.value.slug
 		}
 		if (form.value.display_name !== originalForm.value.display_name) {
 			updates.display_name = form.value.display_name || undefined
@@ -242,7 +244,7 @@ const updateProfile = async () => {
 onMounted(() => {
 	if (userStore.user) {
 		form.value = {
-			alias: userStore.user.alias || '',
+			slug: userStore.user.slug || '',
 			display_name: userStore.user.display_name || '',
 			avatar_url: userStore.user.avatar_url || '',
 		}

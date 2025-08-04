@@ -20,7 +20,7 @@
 							<h1 class="text-h3 q-my-none">{{ pkg.display_name }}</h1>
 							<q-badge
 								:color="pkg.type === 'library' ? 'primary' : 'orange'"
-								:outline="pkg.type === 'showcase'"
+								:outline="pkg.type === 'project'"
 								class="text-body2"
 							>
 								{{ pkg.type }}
@@ -45,7 +45,7 @@
 								</q-avatar>
 								<span
 									>by
-									<router-link :to="`/users/${pkg.author?.alias}`" class="text-primary">
+									<router-link :to="`/users/${pkg.author?.slug}`" class="text-primary">
 										{{ pkg.author?.display_name || pkg.author?.username }}
 									</router-link>
 									<q-icon
@@ -452,10 +452,7 @@ const formatDate = (date) => {
 const loadPackage = async () => {
 	loading.value = true
 	try {
-		const packageData = await apiStore.fetchPackage(
-			route.params.userAlias,
-			route.params.packageSlug,
-		)
+		const packageData = await apiStore.fetchPackage(route.params.userSlug, route.params.packageSlug)
 
 		// Add voting state to tags
 		if (packageData.tags) {
@@ -466,26 +463,29 @@ const loadPackage = async () => {
 		}
 
 		pkg.value = packageData
-
+		// allow these to come in async without disrupting ui:
 		loadReadme()
-
-		// Load active flags
-		try {
-			const flags = await apiStore.fetchPackageFlags(packageData.id)
-			// Add retracting state to each flag
-			activeReports.value = flags.map((flag) => ({
-				...flag,
-				retracting: false,
-			}))
-		} catch (error) {
-			console.error('Failed to load flags:', error)
-			activeReports.value = []
-		}
+		loadFlags()
 	} catch (error) {
 		console.error('Failed to load package:', error)
 		pkg.value = null
 	} finally {
 		loading.value = false
+	}
+}
+
+const loadFlags = async () => {
+	// Load active flags
+	try {
+		const flags = await apiStore.fetchPackageFlags(pkg.value.id)
+		// Add retracting state to each flag
+		activeReports.value = flags.map((flag) => ({
+			...flag,
+			retracting: false,
+		}))
+	} catch (error) {
+		console.error('Failed to load flags:', error)
+		activeReports.value = []
 	}
 }
 
@@ -511,15 +511,6 @@ const loadReadme = async () => {
 	}
 }
 
-const trackView = async () => {
-	try {
-		// In production, this would hit: POST /api/packages/:alias/:name/view
-		console.log('Tracking view for', pkg.value.name)
-	} catch (error) {
-		console.error('Failed to track view:', error)
-	}
-}
-
 const toggleBookmark = async () => {
 	if (!userStore.isLoggedIn) {
 		router.push('/login')
@@ -529,11 +520,11 @@ const toggleBookmark = async () => {
 	bookmarkLoading.value = true
 	try {
 		if (pkg.value.is_bookmarked) {
-			await apiStore.unbookmarkPackage(pkg.value.author.alias, pkg.value.slug)
+			await apiStore.unbookmarkPackage(pkg.value.id)
 			pkg.value.is_bookmarked = false
 			pkg.value.bookmark_count--
 		} else {
-			await apiStore.bookmarkPackage(pkg.value.author.alias, pkg.value.slug)
+			await apiStore.bookmarkPackage(pkg.value.id)
 			pkg.value.is_bookmarked = true
 			pkg.value.bookmark_count++
 		}
@@ -568,7 +559,6 @@ const getRepoType = (url) => {
 	if (url.includes('github.com')) return 'GitHub'
 	if (url.includes('gitlab.com')) return 'GitLab'
 	if (url.includes('bitbucket.org')) return 'Bitbucket'
-	if (url.includes('codeberg.org')) return 'Codeberg'
 	return 'Git'
 }
 

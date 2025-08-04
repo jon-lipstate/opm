@@ -4,7 +4,7 @@
 			<div class="row items-center q-mb-lg">
 				<h4 class="q-ma-none">My Packages</h4>
 				<q-space />
-				<q-btn color="primary" label="Create Package" icon="add" to="/packages/create" />
+				<q-btn color="primary" label="Submit Package" icon="add" to="/submit" />
 			</div>
 
 			<q-card>
@@ -21,13 +21,28 @@
 					<template v-slot:body-cell-name="props">
 						<q-td :props="props">
 							<router-link
-								:to="`/packages/${userStore.user.alias}/${props.row.slug}`"
+								:to="`/packages/${userStore.user.slug}/${props.row.slug}`"
 								class="text-primary text-weight-medium"
 								style="text-decoration: none"
 							>
 								{{ props.row.display_name }}
 							</router-link>
 							<div class="text-caption text-grey-6">{{ props.row.slug }}</div>
+						</q-td>
+					</template>
+
+					<!-- Type -->
+					<template v-slot:body-cell-type="props">
+						<q-td :props="props">
+							<q-chip
+								:color="props.row.type === 'library' ? 'primary' : 'orange'"
+								:outline="props.row.type === 'project'"
+								text-color="white"
+								size="sm"
+								dense
+							>
+								{{ props.row.type }}
+							</q-chip>
 						</q-td>
 					</template>
 
@@ -106,6 +121,16 @@
 						/>
 
 						<q-select
+							v-model="editForm.type"
+							label="Type"
+							outlined
+							:options="typeOptions"
+							emit-value
+							map-options
+							class="q-mb-md"
+						/>
+
+						<q-select
 							v-model="editForm.status"
 							label="Status"
 							outlined
@@ -177,6 +202,7 @@ const editForm = ref({
 	id: null,
 	display_name: '',
 	description: '',
+	type: '',
 	status: '',
 	repository_url: '',
 	license: '',
@@ -189,6 +215,13 @@ const columns = [
 		label: 'Package',
 		field: 'display_name',
 		align: 'left',
+		sortable: true,
+	},
+	{
+		name: 'type',
+		label: 'Type',
+		field: 'type',
+		align: 'center',
 		sortable: true,
 	},
 	{
@@ -219,6 +252,11 @@ const columns = [
 		label: 'Actions',
 		align: 'center',
 	},
+]
+
+const typeOptions = [
+	{ label: 'Library', value: 'library' },
+	{ label: 'Project', value: 'project' },
 ]
 
 const statusOptions = [
@@ -272,6 +310,7 @@ const editPackage = (pkg) => {
 		id: pkg.id,
 		display_name: pkg.display_name,
 		description: pkg.description,
+		type: pkg.type,
 		status: pkg.status,
 		repository_url: pkg.repository_url,
 		license: pkg.license || '',
@@ -285,6 +324,7 @@ const updatePackage = async () => {
 		await apiStore.updatePackage(editForm.value.id, {
 			display_name: editForm.value.display_name,
 			description: editForm.value.description,
+			type: editForm.value.type,
 			status: editForm.value.status,
 			repository_url: editForm.value.repository_url,
 			license: editForm.value.license || undefined,

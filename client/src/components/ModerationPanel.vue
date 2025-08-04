@@ -41,7 +41,7 @@
 						<!-- Package info -->
 						<div class="row items-center q-mb-sm">
 							<router-link
-								:to="`/packages/${report.package.author_alias}/${report.package.name}`"
+								:to="`/packages/${report.package.author_slug}/${report.package.name}`"
 								class="text-subtitle1 text-primary"
 								target="_blank"
 							>
@@ -187,7 +187,7 @@ reports.value = [
 			id: 10,
 			name: 'suspicious-pkg',
 			display_name: 'Suspicious Package',
-			author_alias: 'baduser',
+			author_slug: 'baduser',
 			author_username: 'BadUser123',
 		},
 		reporter: {
@@ -204,7 +204,7 @@ reports.value = [
 			id: 15,
 			name: 'copied-lib',
 			display_name: 'Copied Library',
-			author_alias: 'copycat',
+			author_slug: 'copycat',
 			author_username: 'CopyCat99',
 		},
 		reporter: {
@@ -221,7 +221,7 @@ reports.value = [
 			id: 20,
 			name: 'spam-tool',
 			display_name: 'Spam Tool',
-			author_alias: 'spammer',
+			author_slug: 'spammer',
 			author_username: 'Spammer2024',
 		},
 		reporter: {
@@ -305,7 +305,7 @@ const executeAction = async () => {
 		const { type, report, notes } = actionDialog.value
 
 		// In production, make appropriate API calls:
-		// - Remove package: DELETE /api/packages/:alias/:name
+		// - Remove package: DELETE /api/packages/:slug/:name
 		// - Ban user: POST /api/users/:id/ban
 		// - Dismiss report: PATCH /api/moderation/reports/:id
 

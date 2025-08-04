@@ -61,10 +61,10 @@ export const useApiStore = defineStore('api', {
 			}
 		},
 
-		async fetchPackage(alias, slug) {
+		async fetchPackage(userSlug, pkgSlug) {
 			this.loading.package = true
 			try {
-				const query = `/packages/${alias}/${slug}`
+				const query = `/packages/${userSlug}/${pkgSlug}`
 				devLog(`GET: ${query}`)
 				const response = await api.get(query)
 				devLog('Fetch Package Response:', response.data)
@@ -85,7 +85,7 @@ export const useApiStore = defineStore('api', {
 				devLog('Fetch README Response:', response.data)
 				return response.data
 			} catch (error) {
-				this.handleError(error, 'Failed to fetch README')
+				console.warn('fetchPackageReadme', error.status) // we expect to 404 here sometimes, so dont show a notify
 			}
 		},
 
@@ -108,11 +108,11 @@ export const useApiStore = defineStore('api', {
 		},
 
 		// Bookmark endpoints
-		async bookmarkPackage(alias, slug) {
+		async bookmarkPackage(package_id) {
 			if (!expectAuth()) return
 
 			try {
-				const query = `/packages/${alias}/${slug}/bookmark`
+				const query = `/packages/bookmark?package_id=${package_id}`
 				devLog(`POST: ${query}`)
 				const response = await api.post(query)
 				devLog('Bookmark Package Response:', response.data)
@@ -122,11 +122,11 @@ export const useApiStore = defineStore('api', {
 			}
 		},
 
-		async unbookmarkPackage(alias, slug) {
+		async unbookmarkPackage(package_id) {
 			if (!expectAuth()) return
 
 			try {
-				const query = `/packages/${alias}/${slug}/bookmark`
+				const query = `/packages/bookmark?package_id=${package_id}`
 				devLog(`DELETE: ${query}`)
 				const response = await api.delete(query)
 				devLog('Unbookmark Package Response:', response.data)
@@ -365,26 +365,26 @@ export const useApiStore = defineStore('api', {
 				devLog(`PUT: ${query}`, updates)
 				const response = await api.put(query, updates)
 				devLog('Update Profile Response:', response.data)
-				
+
 				// Fetch the updated user data
 				const userStore = useUserStore()
 				await userStore.fetchUser()
-				
+
 				return response.data
 			} catch (error) {
 				this.handleError(error, 'Failed to update profile')
 			}
 		},
 
-		async checkAliasAvailability(alias) {
+		async checkSlugAvailability(slug) {
 			try {
-				const query = '/users/check-alias'
-				devLog(`GET: ${query}?alias=${alias}`)
-				const response = await api.get(query, { params: { alias } })
-				devLog('Check Alias Response:', response.data)
+				const query = '/users/check-user-slug'
+				devLog(`GET: ${query}?slug=${slug}`)
+				const response = await api.get(query, { params: { slug } })
+				devLog('Check slug Response:', response.data)
 				return response.data
 			} catch (error) {
-				console.error('Failed to check alias:', error)
+				console.error('Failed to check slug:', error)
 				throw error
 			}
 		},

@@ -19,7 +19,8 @@ func GitHubLogin(cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Construct full redirect URL
 		redirectURL := cfg.Host
-		if cfg.Port != "" && cfg.Port != "80" && cfg.Port != "443" {
+		// In production, don't add port if HOST already includes the full URL
+		if cfg.Env == "development" && cfg.Port != "" && cfg.Port != "80" && cfg.Port != "443" {
 			redirectURL = fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 		}
 		redirectURL = redirectURL + "/" + cfg.GitHubRedirectURL
@@ -58,7 +59,8 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 
 		// Construct full redirect URL
 		redirectURL := cfg.Host
-		if cfg.Port != "" && cfg.Port != "80" && cfg.Port != "443" {
+		// In production, don't add port if HOST already includes the full URL
+		if cfg.Env == "development" && cfg.Port != "" && cfg.Port != "80" && cfg.Port != "443" {
 			redirectURL = fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 		}
 		redirectURL = redirectURL + "/" + cfg.GitHubRedirectURL

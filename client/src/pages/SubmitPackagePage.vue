@@ -3,6 +3,8 @@
 		<div class="container" style="max-width: 800px; margin: 0 auto">
 			<h1 class="text-h3 q-mb-lg">Submit Package</h1>
 
+			<div>Submitted packages must either be Odin code, or directly support the Odin language.</div>
+
 			<!-- Login required message -->
 			<q-banner v-if="!userStore.isLoggedIn" class="bg-warning q-mb-lg">
 				<template v-slot:avatar>
@@ -17,6 +19,7 @@
 			<q-form v-else @submit="onSubmit" @reset="onReset" class="q-gutter-md">
 				<!-- Repository URL -->
 				<q-input
+					dense
 					v-model="form.repositoryUrl"
 					label="Repository URL *"
 					hint="GitHub, GitLab, or other Git repository URL"
@@ -52,6 +55,7 @@
 
 				<!-- Package Name/Slug -->
 				<q-input
+					dense
 					v-model="form.slug"
 					label="Package Slug *"
 					hint="URL-safe name (lowercase, numbers, hyphens, underscores)"
@@ -67,12 +71,13 @@
 					@update:model-value="(val) => (form.slug = val.toLowerCase())"
 				>
 					<template v-slot:prepend>
-						<span class="text-caption text-grey-6">{{ userStore.alias }}/</span>
+						<span class="text-caption text-grey-6">{{ userStore.slug }}/</span>
 					</template>
 				</q-input>
 
 				<!-- Display Name -->
 				<q-input
+					dense
 					v-model="form.displayName"
 					label="Display Name *"
 					hint="Human-readable name for your package"
@@ -86,11 +91,12 @@
 
 				<!-- Description -->
 				<q-input
+					dense
 					v-model="form.description"
 					label="Description *"
 					hint="Brief description of what your package does"
 					type="textarea"
-					rows="3"
+					rows="4"
 					lazy-rules
 					:rules="[
 						(val) => (val && val.length > 0) || 'Please enter a description',
@@ -101,6 +107,7 @@
 
 				<!-- License -->
 				<q-input
+					dense
 					v-model="form.license"
 					label="License"
 					placeholder="e.g. BSD-3, MIT, Apache 2.0"
@@ -117,13 +124,13 @@
 				<!-- Type -->
 				<div>
 					<div class="text-subtitle2 q-mb-sm">Package Type *</div>
-					<q-option-group v-model="form.type" :options="typeOptions" inline />
+					<q-option-group dense v-model="form.type" :options="typeOptions" inline />
 				</div>
 
 				<!-- Status -->
 				<div>
 					<div class="text-subtitle2 q-mb-sm">Development Status *</div>
-					<q-option-group v-model="form.status" :options="statusOptions" inline />
+					<q-option-group dense v-model="form.status" :options="statusOptions" inline />
 				</div>
 
 				<!-- Tags -->
@@ -147,6 +154,7 @@
 					</div>
 
 					<q-select
+						dense
 						v-model="tagInput"
 						:options="filteredTags"
 						option-label="name"
@@ -217,7 +225,7 @@ const form = ref({
 	description: '',
 	repositoryUrl: '',
 	license: '',
-	type: 'showcase',
+	type: 'project',
 	status: 'in_work',
 })
 
@@ -230,7 +238,7 @@ const tagInput = ref(null)
 
 const typeOptions = [
 	{ label: 'Library', value: 'library', color: 'primary' },
-	{ label: 'Showcase', value: 'showcase', color: 'secondary' },
+	{ label: 'Project', value: 'project', color: 'secondary' },
 ]
 
 const statusOptions = [
@@ -266,7 +274,6 @@ const isValidRepoUrl = (url) => {
 		/^https?:\/\/(www\.)?github\.com\/.+\/.+/,
 		/^https?:\/\/(www\.)?gitlab\.com\/.+\/.+/,
 		/^https?:\/\/(www\.)?bitbucket\.org\/.+\/.+/,
-		/^https?:\/\/(www\.)?codeberg\.org\/.+\/.+/,
 		/^https?:\/\/.+\/.+\/.+/, // Generic pattern for self-hosted
 	]
 
@@ -362,7 +369,7 @@ const onSubmit = async () => {
 		// Success notification is already shown by apiStore.createPackage
 
 		// Redirect to the new package page
-		router.push(`/packages/${userStore.alias}/${response.slug}`)
+		router.push(`/packages/${userStore.slug}/${response.slug}`)
 	} catch (error) {
 		console.error('Failed to submit package:', error)
 

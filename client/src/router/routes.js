@@ -6,7 +6,7 @@ const routes = [
 			{ path: '', component: () => import('pages/IndexPage.vue') },
 			{ path: 'login', component: () => import('pages/LoginPage.vue') },
 			{
-				path: 'packages/:userAlias/:packageSlug',
+				path: 'packages/:userSlug/:packageSlug',
 				component: () => import('pages/PackageDetailPage.vue'),
 			},
 			{ path: 'submit', component: () => import('pages/SubmitPackagePage.vue') },

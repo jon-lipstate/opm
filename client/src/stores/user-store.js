@@ -14,7 +14,7 @@ export const useUserStore = defineStore('user', {
 		username: (state) => state.user?.username || '',
 		displayName: (state) => state.user?.display_name || state.user?.username || '',
 		avatarUrl: (state) => state.user?.avatar_url || '',
-		alias: (state) => state.user?.alias || state.user?.username || '',
+		slug: (state) => state.user?.slug || state.user?.username || '',
 		isLoggedIn: (state) => state.isAuthenticated && state.user !== null,
 		isModerator: (state) => state.user?.is_moderator || false,
 	},

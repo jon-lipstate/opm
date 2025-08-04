@@ -10,7 +10,7 @@ CREATE TABLE users (
     discord_id VARCHAR(255) UNIQUE,
     username VARCHAR(100) NOT NULL UNIQUE,
     display_name VARCHAR(255),
-    alias VARCHAR(100) UNIQUE CHECK (alias ~ '^[a-z0-9-]+$'), -- URL Safe
+    slug VARCHAR(100) UNIQUE CHECK (slug ~ '^[a-z0-9-]+$'), -- URL Safe
     avatar_url TEXT,
     is_moderator BOOLEAN NOT NULL DEFAULT FALSE,
     is_banned BOOLEAN NOT NULL DEFAULT FALSE,
@@ -23,11 +23,11 @@ CREATE TABLE users (
     verified_at TIMESTAMPTZ,
     CONSTRAINT users_has_oauth CHECK (github_id IS NOT NULL OR discord_id IS NOT NULL)
 );
-CREATE INDEX idx_users_alias ON users(alias);
+CREATE INDEX idx_users_slug ON users(slug);
 
 -----------------------------------------------------------------------------------
 
-CREATE TYPE package_type AS ENUM ('library', 'showcase');
+CREATE TYPE package_type AS ENUM ('library', 'project');
 CREATE TYPE package_status AS ENUM ('in_work', 'ready', 'archived', 'abandoned');
 
 -- Packages table
@@ -37,7 +37,7 @@ CREATE TABLE packages (
     slug VARCHAR(100) NOT NULL UNIQUE, -- URL safe
     display_name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    type package_type NOT NULL DEFAULT 'showcase',
+    type package_type NOT NULL DEFAULT 'project',
     status package_status NOT NULL DEFAULT 'in_work',
     repository_url TEXT NOT NULL,
     license VARCHAR(100),

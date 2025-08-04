@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
 
 # Pull latest changes
 echo "📥 Pulling latest changes from git..."
-git pull origin main
+git pull origin master
 
 # Build the server
 echo "🔨 Building Go server..."

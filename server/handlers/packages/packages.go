@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"opm/db"
+	"opm/helpers"
+	"opm/logger"
 	"opm/middleware"
 	"opm/models"
-	"strconv"
 	"strings"
 	"time"
 
@@ -27,15 +28,15 @@ func List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Type filter
-	if t := r.URL.Query().Get("type"); t != "" {
-		pkgType := models.PackageType(t)
-		filter.Type = &pkgType
+	if ptype, hasType := helpers.OptionalParamString(r, "type"); hasType {
+		t := models.PackageType(ptype)
+		filter.Type = &t
 	}
 
 	// Status filter
-	if s := r.URL.Query().Get("status"); s != "" {
-		status := models.PackageStatus(s)
-		filter.Status = &status
+	if status, hasStatus := helpers.OptionalParamString(r, "status"); hasStatus {
+		s := models.PackageStatus(status)
+		filter.Status = &s
 	}
 
 	// Tags filter (multiple)
@@ -44,15 +45,12 @@ func List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Pagination
-	if limit := r.URL.Query().Get("limit"); limit != "" {
-		if l, err := strconv.Atoi(limit); err == nil && l > 0 && l <= 100 {
-			filter.Limit = l
-		}
+	if limit, hasLimit := helpers.OptionalParamInt(r, "limit"); hasLimit {
+		filter.Limit = *limit
 	}
-	if offset := r.URL.Query().Get("offset"); offset != "" {
-		if o, err := strconv.Atoi(offset); err == nil && o >= 0 {
-			filter.Offset = o
-		}
+
+	if offset, hasOffset := helpers.OptionalParamInt(r, "offset"); hasOffset {
+		filter.Offset = *offset
 	}
 
 	// Build query
@@ -60,7 +58,7 @@ func List(w http.ResponseWriter, r *http.Request) {
 			SELECT DISTINCT p.id, p.slug, p.display_name, p.description, p.type, p.status,
 			       p.repository_url, p.license, p.author_id, p.created_at, p.updated_at,
 			       p.view_count, p.bookmark_count,
-			       u.username, u.alias, u.display_name, u.avatar_url,
+			       u.username, u.slug, u.display_name, u.avatar_url,
 			       (SELECT COUNT(*) FROM flags WHERE package_id = p.id AND status = 'pending') as active_reports_count
 			FROM packages p
 			JOIN users u ON p.author_id = u.id
@@ -115,9 +113,7 @@ func List(w http.ResponseWriter, r *http.Request) {
 	// Execute query
 	rows, err := db.Conn.Query(ctx, query, args...)
 	if err != nil {
-		fmt.Printf("Package query error: %v\n", err)
-		fmt.Printf("Query: %s\n", query)
-		fmt.Printf("Args: %v\n", args)
+		logger.MainLogger.Printf("Failed to fetch packages - Query: %s, Args: %v, Error: %v", query, args, err)
 		http.Error(w, "Failed to fetch packages", http.StatusInternalServerError)
 		return
 	}
@@ -133,11 +129,12 @@ func List(w http.ResponseWriter, r *http.Request) {
 			&p.ID, &p.Slug, &p.DisplayName, &p.Description, &p.Type, &p.Status,
 			&p.RepositoryURL, &p.License, &p.AuthorID, &p.CreatedAt, &p.UpdatedAt,
 			&p.ViewCount, &p.BookmarkCount,
-			&author.Username, &author.Alias, &author.DisplayName, &author.AvatarURL,
+			&author.Username, &author.Slug, &author.DisplayName, &author.AvatarURL,
 			&activeReportsCount,
 		)
 		p.ActiveReportsCount = activeReportsCount
 		if err != nil {
+			logger.MainLogger.Printf("Failed to scan package: %v", err)
 			http.Error(w, "Failed to scan package", http.StatusInternalServerError)
 			return
 		}
@@ -167,39 +164,38 @@ func List(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(packages)
 }
 
-// Get returns a single package by alias and slug
+// Get returns a single package by user slug and package slug
 func Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)
-	alias := vars["alias"]
-	slug := vars["slug"]
+	userSlug := vars["userSlug"]
+	slug := vars["pkgSlug"]
 
 	query := `
 			SELECT p.id, p.slug, p.display_name, p.description, p.type, p.status,
 			       p.repository_url, p.license, p.author_id, p.created_at, p.updated_at,
 			       p.view_count, p.bookmark_count,
-			       u.id, u.username, u.alias, u.display_name, u.avatar_url,
+			       u.id, u.username, u.slug, u.display_name, u.avatar_url,
 			       u.discord_verified, u.github_verified
 			FROM packages p
 			JOIN users u ON p.author_id = u.id
-			WHERE u.alias = $1 AND p.slug = $2`
+			WHERE u.slug = $1 AND p.slug = $2`
 
 	var p models.Package
 	var author models.User
-	err := db.Conn.QueryRow(ctx, query, alias, slug).Scan(
+	err := db.Conn.QueryRow(ctx, query, userSlug, slug).Scan(
 		&p.ID, &p.Slug, &p.DisplayName, &p.Description, &p.Type, &p.Status,
 		&p.RepositoryURL, &p.License, &p.AuthorID, &p.CreatedAt, &p.UpdatedAt,
 		&p.ViewCount, &p.BookmarkCount,
-		&author.ID, &author.Username, &author.Alias, &author.DisplayName, &author.AvatarURL,
+		&author.ID, &author.Username, &author.Slug, &author.DisplayName, &author.AvatarURL,
 		&author.DiscordVerified, &author.GitHubVerified,
 	)
 	if err == pgx.ErrNoRows {
-		fmt.Println("ERROR-NO-ROWS", err)
 		http.Error(w, "Package not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		fmt.Println("GET ERR", err)
+		logger.MainLogger.Printf("Failed to fetch package %s/%s: %v", userSlug, slug, err)
 		http.Error(w, "Failed to fetch package", http.StatusInternalServerError)
 		return
 	}
@@ -256,6 +252,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	// Start transaction
 	tx, err := db.Conn.Begin(ctx)
 	if err != nil {
+		logger.MainLogger.Printf("Failed to start transaction for package creation: %v", err)
 		http.Error(w, "Failed to start transaction", http.StatusInternalServerError)
 		return
 	}
@@ -265,6 +262,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	var exists bool
 	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM packages WHERE slug = $1)", input.Slug).Scan(&exists)
 	if err != nil {
+		logger.MainLogger.Printf("Failed to check package existence for slug %s: %v", input.Slug, err)
 		http.Error(w, "Failed to check package existence", http.StatusInternalServerError)
 		return
 	}
@@ -283,6 +281,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		input.RepositoryURL, input.License, authUser.UserID,
 	).Scan(&packageID)
 	if err != nil {
+		logger.MainLogger.Printf("Failed to create package %s: %v", input.DisplayName, err)
 		http.Error(w, "Failed to create package", http.StatusInternalServerError)
 		return
 	}
@@ -297,6 +296,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 				packageID, tagID,
 			)
 			if err != nil {
+				logger.MainLogger.Printf("Failed to add tag %d to package %d: %v", tagID, packageID, err)
 				http.Error(w, fmt.Sprintf("Failed to add tags: %v", err), http.StatusInternalServerError)
 				return
 			}
@@ -305,6 +305,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	// Commit transaction
 	if err = tx.Commit(ctx); err != nil {
+		logger.MainLogger.Printf("Failed to commit package creation transaction: %v", err)
 		http.Error(w, "Failed to commit transaction", http.StatusInternalServerError)
 		return
 	}
@@ -324,10 +325,10 @@ func Create(w http.ResponseWriter, r *http.Request) {
 func prettyPrint(label string, v interface{}) {
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		fmt.Printf("%s: %+v (error formatting: %v)\n", label, v, err)
+		logger.MainLogger.Printf("%s: %+v (error formatting: %v)", label, v, err)
 		return
 	}
-	fmt.Printf("%s:\n%s\n", label, string(b))
+	logger.MainLogger.Printf("%s:\n%s", label, string(b))
 }
 
 func getPackageTags(ctx context.Context, packageID int, userID int) ([]models.Tag, error) {
@@ -368,7 +369,7 @@ func checkBookmark(ctx context.Context, userID, packageID int) bool {
 		userID, packageID,
 	).Scan(&exists)
 	if err != nil {
-		fmt.Printf("Error checking bookmark: %v\n", err)
+		logger.MainLogger.Printf("Error checking bookmark for user %d, package %d: %v", userID, packageID, err)
 	}
 	return err == nil && exists
 }
@@ -382,7 +383,7 @@ func trackView(packageID int, userID *int) {
 	_, err := db.Conn.Exec(trackCtx, "SELECT track_package_view($1, $2)", packageID, userID)
 	if err != nil {
 		// Log but don't fail
-		fmt.Printf("Failed to track view for package %d: %v\n", packageID, err)
+		logger.MainLogger.Printf("Failed to track view for package %d: %v", packageID, err)
 	}
 }
 
@@ -445,6 +446,12 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		argIndex++
 	}
 
+	if input.Type != nil {
+		updateFields = append(updateFields, fmt.Sprintf("type = $%d", argIndex))
+		args = append(args, *input.Type)
+		argIndex++
+	}
+
 	if input.Status != nil {
 		updateFields = append(updateFields, fmt.Sprintf("status = $%d", argIndex))
 		args = append(args, *input.Status)
@@ -482,13 +489,11 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		argIndex,
 	)
 
-	// Debug log the query
-	fmt.Printf("Update query: %s\n", query)
 	prettyPrint("Update args", args)
 
 	_, err = db.Conn.Exec(ctx, query, args...)
 	if err != nil {
-		fmt.Printf("Update error: %v\n", err)
+		logger.MainLogger.Printf("Failed to update package %d: %v", packageID, err)
 		http.Error(w, "Failed to update package", http.StatusInternalServerError)
 		return
 	}
@@ -507,7 +512,6 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-
 	vars := mux.Vars(r)
 	packageID := vars["id"]
 
@@ -534,6 +538,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	// Delete package (cascades to related tables)
 	_, err = db.Conn.Exec(ctx, "DELETE FROM packages WHERE id = $1", packageID)
 	if err != nil {
+		logger.MainLogger.Printf("Failed to delete package %d: %v", packageID, err)
 		http.Error(w, "Failed to delete package", http.StatusInternalServerError)
 		return
 	}

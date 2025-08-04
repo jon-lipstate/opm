@@ -9,8 +9,8 @@ import (
 type PackageType string
 
 const (
-	PackageTypeLibrary  PackageType = "library"
-	PackageTypeShowcase PackageType = "showcase"
+	PackageTypeLibrary PackageType = "library"
+	PackageTypeProject PackageType = "project"
 )
 
 func (pt *PackageType) Scan(value interface{}) error {

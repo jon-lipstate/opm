@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"log"
+	"opm/logger"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -15,7 +15,7 @@ var Conn *pgxpool.Pool
 func InitPool(dbURL string) {
 	config, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
-		log.Fatalf("❌ Unable to parse database URL: %v\n", err)
+		logger.MainLogger.Fatalf("❌ Unable to parse database URL: %v\n", err)
 	}
 
 	config.MaxConns = 128
@@ -24,25 +24,25 @@ func InitPool(dbURL string) {
 
 	Conn, err = pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		log.Fatalf("❌ Unable to create connection pool: %v\n", err)
+		logger.MainLogger.Fatalf("❌ Unable to create connection pool: %v\n", err)
 	}
 
-	log.Println("✅ Database connection pool initialized")
+	logger.MainLogger.Println("✅ Database connection pool initialized")
 
 	// Set timezone
 	_, err = Conn.Exec(context.Background(), "SET timezone = 'UTC';")
 	if err != nil {
-		log.Fatalf("❌ Error setting timezone: %v\n", err)
+		logger.MainLogger.Fatalf("❌ Error setting timezone: %v\n", err)
 	}
 
-	log.Println("🕒 Timezone set to UTC")
+	logger.MainLogger.Println("🕒 Timezone set to UTC")
 }
 
 // Close closes the database connection pool
 func Close() {
 	if Conn != nil {
 		Conn.Close()
-		log.Println("✅ Database connection pool closed")
+		logger.MainLogger.Println("✅ Database connection pool closed")
 	}
 }
 
@@ -53,7 +53,7 @@ func Ping() error {
 
 	err := Conn.Ping(ctx)
 	if err != nil {
-		log.Printf("❌ Database ping failed: %v", err)
+		logger.MainLogger.Printf("❌ Database ping failed: %v", err)
 		return err
 	}
 	return nil

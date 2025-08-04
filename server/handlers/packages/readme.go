@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"opm/db"
+	"opm/logger"
 	"strings"
 	"time"
 
@@ -40,6 +41,7 @@ func GetPackageReadme(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		logger.MainLogger.Printf("Failed to find package %d for README: %v", packageID, err)
 		http.Error(w, "Failed to find package", http.StatusInternalServerError)
 		return
 	}
@@ -47,7 +49,13 @@ func GetPackageReadme(w http.ResponseWriter, r *http.Request) {
 	// Parse repository URL and fetch README
 	readmeContent, err := fetchReadmeFromRepo(repositoryURL)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to fetch README: %v", err), http.StatusInternalServerError)
+		// Check if it's a "not found" error
+		if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+			http.Error(w, "README not found", http.StatusNotFound)
+			return
+		}
+		logger.MainLogger.Printf("Failed to fetch README for package %d from %s: %v", packageID, repositoryURL, err)
+		http.Error(w, "Failed to fetch README", http.StatusInternalServerError)
 		return
 	}
 
@@ -73,11 +81,6 @@ func fetchReadmeFromRepo(repoURL string) (string, error) {
 	// GitLab repositories
 	if strings.Contains(repoURL, "gitlab.com") {
 		return fetchGitLabReadme(repoURL)
-	}
-
-	// Codeberg repositories
-	if strings.Contains(repoURL, "codeberg.org") {
-		return fetchCodebergReadme(repoURL)
 	}
 
 	return "", fmt.Errorf("unsupported repository provider")
@@ -147,42 +150,6 @@ func fetchGitLabReadme(repoURL string) (string, error) {
 
 		// Try master branch
 		rawURL = fmt.Sprintf("https://gitlab.com/%s/-/raw/master/%s", projectPath, filename)
-		content, err = fetchFromURL(client, rawURL)
-		if err == nil {
-			return content, nil
-		}
-	}
-
-	return "", fmt.Errorf("README not found")
-}
-
-// fetchCodebergReadme fetches README from Codeberg
-func fetchCodebergReadme(repoURL string) (string, error) {
-	// Extract owner and repo from URL
-	parts := strings.Split(repoURL, "codeberg.org/")
-	if len(parts) != 2 {
-		return "", fmt.Errorf("invalid Codeberg URL")
-	}
-
-	repoPath := strings.TrimPrefix(parts[1], "/")
-
-	// Try different README filenames
-	readmeFiles := []string{"README.md", "readme.md", "README.MD", "Readme.md", "README", "readme"}
-
-	client := &http.Client{Timeout: 10 * time.Second}
-
-	for _, filename := range readmeFiles {
-		// Use Codeberg raw content URL
-		rawURL := fmt.Sprintf("https://codeberg.org/%s/raw/branch/main/%s", repoPath, filename)
-
-		// Try main branch first
-		content, err := fetchFromURL(client, rawURL)
-		if err == nil {
-			return content, nil
-		}
-
-		// Try master branch
-		rawURL = fmt.Sprintf("https://codeberg.org/%s/raw/branch/master/%s", repoPath, filename)
 		content, err = fetchFromURL(client, rawURL)
 		if err == nil {
 			return content, nil

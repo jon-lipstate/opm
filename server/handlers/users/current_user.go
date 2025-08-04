@@ -2,10 +2,10 @@ package users
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"opm/db"
+	"opm/logger"
 	"opm/middleware"
 	"opm/models"
 )
@@ -16,14 +16,13 @@ func GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	// Get auth user from context
 	authUser, ok := middleware.GetAuthUser(ctx)
 	if !ok {
-		fmt.Println("No Token")
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	// Fetch user details from database
 	var user models.User
-	query := `SELECT id, github_id, discord_id, username, alias, display_name, avatar_url, created_at, updated_at 
+	query := `SELECT id, github_id, discord_id, username, slug, display_name, avatar_url, created_at, updated_at 
 				  FROM users WHERE id = $1`
 
 	err := db.QueryRow(ctx, query, authUser.UserID).Scan(
@@ -31,7 +30,7 @@ func GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 		&user.GitHubID,
 		&user.DiscordID,
 		&user.Username,
-		&user.Alias,
+		&user.Slug,
 		&user.DisplayName,
 		&user.AvatarURL,
 		&user.CreatedAt,
@@ -39,7 +38,7 @@ func GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		fmt.Println("User Query Error", err)
+		logger.MainLogger.Printf("Failed to fetch user %d from database: %v", authUser.UserID, err)
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}

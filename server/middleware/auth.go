@@ -62,6 +62,12 @@ func RequireAuthMiddleware(next http.Handler) http.Handler {
 			Token:  token,
 		}
 		ctx := context.WithValue(r.Context(), userContextKey, authUser)
+		
+		// Set user ID in response writer for logging
+		if rw, ok := r.Context().Value("responseWriter").(*responseWriter); ok {
+			rw.SetUserID(claims.UserID)
+		}
+		
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -117,6 +123,12 @@ func OptionalAuthMiddleware(next http.Handler) http.Handler {
 			Token:  token,
 		}
 		ctx := context.WithValue(r.Context(), userContextKey, authUser)
+		
+		// Set user ID in response writer for logging
+		if rw, ok := r.Context().Value("responseWriter").(*responseWriter); ok {
+			rw.SetUserID(claims.UserID)
+		}
+		
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

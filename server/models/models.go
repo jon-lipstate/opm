@@ -10,7 +10,7 @@ type User struct {
 	GitHubID         *string    `json:"github_id,omitempty"`
 	DiscordID        *string    `json:"discord_id,omitempty"`
 	Username         string     `json:"username"`
-	Alias            string     `json:"alias"`
+	Slug             string     `json:"slug"`
 	DisplayName      *string    `json:"display_name,omitempty"`
 	AvatarURL        *string    `json:"avatar_url,omitempty"`
 	IsModerator      bool       `json:"is_moderator"`
@@ -73,7 +73,7 @@ type CreatePackageInput struct {
 	Slug          string        `json:"slug" validate:"required,min=2,max=100,slug"`
 	DisplayName   string        `json:"display_name" validate:"required,min=2,max=255"`
 	Description   string        `json:"description" validate:"required,min=10,max=1000"`
-	Type          PackageType   `json:"type" validate:"required,oneof=library showcase"`
+	Type          PackageType   `json:"type" validate:"required,oneof=library project"`
 	Status        PackageStatus `json:"status" validate:"required,oneof=in_work ready archived abandoned"`
 	RepositoryURL string        `json:"repository_url" validate:"required,url"`
 	License       *string       `json:"license,omitempty" validate:"omitempty,max=100"`
@@ -84,6 +84,7 @@ type CreatePackageInput struct {
 type UpdatePackageInput struct {
 	DisplayName   *string        `json:"display_name,omitempty" validate:"omitempty,min=2,max=255"`
 	Description   *string        `json:"description,omitempty" validate:"omitempty,min=10,max=1000"`
+	Type          *PackageType   `json:"type,omitempty" validate:"omitempty,oneof=library project"`
 	Status        *PackageStatus `json:"status,omitempty" validate:"omitempty,oneof=in_work ready"`
 	RepositoryURL *string        `json:"repository_url,omitempty" validate:"omitempty,url"`
 	License       *string        `json:"license,omitempty" validate:"omitempty,max=100"`
@@ -116,7 +117,7 @@ type PackageView struct {
 
 // UpdateUserInput represents the input for updating a user profile
 type UpdateUserInput struct {
-	Alias       *string `json:"alias,omitempty"`
+	Slug        *string `json:"slug,omitempty"`
 	DisplayName *string `json:"display_name,omitempty"`
 	AvatarURL   *string `json:"avatar_url,omitempty"`
 }

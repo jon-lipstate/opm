@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"opm/logger"
 	"strings"
 )
 
@@ -60,6 +61,7 @@ func GetRepositoryMetadata(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
+		logger.MainLogger.Printf("Failed to create GitHub API request for %s: %v", apiURL, err)
 		http.Error(w, "Failed to create request", http.StatusInternalServerError)
 		return
 	}
@@ -70,6 +72,7 @@ func GetRepositoryMetadata(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := client.Do(req)
 	if err != nil {
+		logger.MainLogger.Printf("Failed to fetch repository data from GitHub API %s: %v", apiURL, err)
 		http.Error(w, "Failed to fetch repository data", http.StatusInternalServerError)
 		return
 	}
@@ -79,6 +82,7 @@ func GetRepositoryMetadata(w http.ResponseWriter, r *http.Request) {
 		if resp.StatusCode == http.StatusNotFound {
 			http.Error(w, "Repository not found", http.StatusNotFound)
 		} else {
+			logger.MainLogger.Printf("GitHub API returned unexpected status %d for %s", resp.StatusCode, apiURL)
 			http.Error(w, "Failed to fetch repository data", http.StatusInternalServerError)
 		}
 		return
@@ -86,6 +90,7 @@ func GetRepositoryMetadata(w http.ResponseWriter, r *http.Request) {
 
 	var githubRepo GitHubRepo
 	if err := json.NewDecoder(resp.Body).Decode(&githubRepo); err != nil {
+		logger.MainLogger.Printf("Failed to parse GitHub repository data for %s: %v", repoURL, err)
 		http.Error(w, "Failed to parse repository data", http.StatusInternalServerError)
 		return
 	}

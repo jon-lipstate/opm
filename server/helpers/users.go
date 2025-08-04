@@ -6,9 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"opm/db"
 	"opm/models"
+
+	"github.com/jackc/pgx/v5"
 )
 
 // FindOrCreateUser finds an existing user or creates a new one
@@ -16,7 +17,7 @@ func FindOrCreateUser(ctx context.Context, provider string, providerID string, u
 	// Create a new context with a longer timeout for database operations
 	dbCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	
+
 	var user models.User
 	var query string
 	var args []interface{}
@@ -24,11 +25,11 @@ func FindOrCreateUser(ctx context.Context, provider string, providerID string, u
 	// Check which provider we're using
 	switch provider {
 	case "github":
-		query = `SELECT id, github_id, discord_id, username, alias, display_name, avatar_url, created_at, updated_at 
+		query = `SELECT id, github_id, discord_id, username, slug, display_name, avatar_url, created_at, updated_at 
 				 FROM users WHERE github_id = $1`
 		args = []interface{}{providerID}
 	case "discord":
-		query = `SELECT id, github_id, discord_id, username, alias, display_name, avatar_url, created_at, updated_at 
+		query = `SELECT id, github_id, discord_id, username, slug, display_name, avatar_url, created_at, updated_at 
 				 FROM users WHERE discord_id = $1`
 		args = []interface{}{providerID}
 	default:
@@ -41,7 +42,7 @@ func FindOrCreateUser(ctx context.Context, provider string, providerID string, u
 		&user.GitHubID,
 		&user.DiscordID,
 		&user.Username,
-		&user.Alias,
+		&user.Slug,
 		&user.DisplayName,
 		&user.AvatarURL,
 		&user.CreatedAt,
@@ -82,36 +83,36 @@ func FindOrCreateUser(ctx context.Context, provider string, providerID string, u
 		counter++
 	}
 
-	// Generate a unique alias
-	baseAlias := GenerateAlias(uniqueUsername)
-	uniqueAlias := baseAlias
+	// Generate a unique slug
+	baseSlug := GenerateUserSlug(uniqueUsername)
+	uniqueSlug := baseSlug
 	counter = 1
 
 	for {
 		var exists bool
-		err = db.QueryRow(dbCtx, "SELECT EXISTS(SELECT 1 FROM users WHERE alias = $1)", uniqueAlias).Scan(&exists)
+		err = db.QueryRow(dbCtx, "SELECT EXISTS(SELECT 1 FROM users WHERE slug = $1)", uniqueSlug).Scan(&exists)
 		if err != nil {
-			return nil, fmt.Errorf("failed to check alias: %w", err)
+			return nil, fmt.Errorf("failed to check slug: %w", err)
 		}
 		if !exists {
 			break
 		}
-		uniqueAlias = fmt.Sprintf("%s-%d", baseAlias, counter)
+		uniqueSlug = fmt.Sprintf("%s-%d", baseSlug, counter)
 		counter++
 	}
 
 	// Create new user
 	var insertQuery string
 	if provider == "github" {
-		insertQuery = `INSERT INTO users (github_id, username, alias, display_name, avatar_url) 
+		insertQuery = `INSERT INTO users (github_id, username, slug, display_name, avatar_url) 
 					   VALUES ($1, $2, $3, $4, $5) 
-					   RETURNING id, github_id, discord_id, username, alias, display_name, avatar_url, created_at, updated_at`
-		args = []interface{}{providerID, uniqueUsername, uniqueAlias, displayName, avatarURL}
+					   RETURNING id, github_id, discord_id, username, slug, display_name, avatar_url, created_at, updated_at`
+		args = []interface{}{providerID, uniqueUsername, uniqueSlug, displayName, avatarURL}
 	} else {
-		insertQuery = `INSERT INTO users (discord_id, username, alias, display_name, avatar_url) 
+		insertQuery = `INSERT INTO users (discord_id, username, slug, display_name, avatar_url) 
 					   VALUES ($1, $2, $3, $4, $5) 
-					   RETURNING id, github_id, discord_id, username, alias, display_name, avatar_url, created_at, updated_at`
-		args = []interface{}{providerID, uniqueUsername, uniqueAlias, displayName, avatarURL}
+					   RETURNING id, github_id, discord_id, username, slug, display_name, avatar_url, created_at, updated_at`
+		args = []interface{}{providerID, uniqueUsername, uniqueSlug, displayName, avatarURL}
 	}
 
 	err = db.QueryRow(dbCtx, insertQuery, args...).Scan(
@@ -119,7 +120,7 @@ func FindOrCreateUser(ctx context.Context, provider string, providerID string, u
 		&user.GitHubID,
 		&user.DiscordID,
 		&user.Username,
-		&user.Alias,
+		&user.Slug,
 		&user.DisplayName,
 		&user.AvatarURL,
 		&user.CreatedAt,

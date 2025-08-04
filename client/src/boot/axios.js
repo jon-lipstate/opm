@@ -3,11 +3,9 @@ import axios from 'axios'
 import { useUserStore } from 'stores/user-store'
 
 // Set base URL based on environment
-const baseURL =
-	process.env.NODE_ENV === 'development' ? 'http://localhost:8080/' : 'https://api.pkg-odin.org'
-
+const apiUrl = import.meta.env.VITE_API_URL
 const api = axios.create({
-	baseURL,
+	baseURL: apiUrl,
 	withCredentials: true, // Important for cookies
 })
 

@@ -38,8 +38,9 @@ export const useUserStore = defineStore('user', {
 		},
 
 		async login(provider) {
+			const apiURL = import.meta.env.VITE_API_URL
 			// OAuth login is handled by redirecting to the server
-			window.location.href = `http://localhost:8080/api/auth/${provider}`
+			window.location.href = `${apiURL}/auth/${provider}`
 		},
 
 		async logout() {

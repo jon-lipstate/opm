@@ -136,7 +136,7 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 			domain = "localhost"
 			secure = false
 		case "production":
-			domain = "api.pkg-odin.org"
+			domain = ".pkg-odin.org"  // Allow cookie across subdomains
 			secure = true
 		default:
 			fmt.Println("INVALID ENVIRONMENT")

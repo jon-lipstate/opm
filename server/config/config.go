@@ -61,11 +61,11 @@ func Load() (*Config, error) {
 
 		GitHubClientID:     getEnv("GITHUB_CLIENT_ID", ""),
 		GitHubClientSecret: getEnv("GITHUB_CLIENT_SECRET", ""),
-		GitHubRedirectURL:  baseURL + "/" + getEnv("GITHUB_REDIRECT_URL", "api/auth/github/callback"),
+		GitHubRedirectURL:  baseURL + "/" + getEnv("GITHUB_REDIRECT_URL", "auth/github/callback"),
 
 		DiscordClientID:     getEnv("DISCORD_CLIENT_ID", ""),
 		DiscordClientSecret: getEnv("DISCORD_CLIENT_SECRET", ""),
-		DiscordRedirectURL:  baseURL + "/" + getEnv("DISCORD_REDIRECT_URL", "api/auth/discord/callback"),
+		DiscordRedirectURL:  baseURL + "/" + getEnv("DISCORD_REDIRECT_URL", "auth/discord/callback"),
 
 		DiscordBotToken: getEnv("DISCORD_BOT_TOKEN", ""),
 

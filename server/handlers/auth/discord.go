@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"golang.org/x/oauth2"
@@ -17,10 +18,17 @@ var discordEndpoint = oauth2.Endpoint{
 // DiscordLogin initiates the Discord OAuth flow
 func DiscordLogin(cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Construct full redirect URL
+		redirectURL := cfg.Host
+		if cfg.Port != "" && cfg.Port != "80" && cfg.Port != "443" {
+			redirectURL = fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+		}
+		redirectURL = redirectURL + "/" + cfg.DiscordRedirectURL
+
 		oauthConfig := &oauth2.Config{
 			ClientID:     cfg.DiscordClientID,
 			ClientSecret: cfg.DiscordClientSecret,
-			RedirectURL:  cfg.DiscordRedirectURL,
+			RedirectURL:  redirectURL,
 			Scopes:       []string{"identify", "email"},
 			Endpoint:     discordEndpoint,
 		}
@@ -49,10 +57,17 @@ func DiscordCallback(cfg *config.Config) http.HandlerFunc {
 			return
 		}
 
+		// Construct full redirect URL
+		redirectURL := cfg.Host
+		if cfg.Port != "" && cfg.Port != "80" && cfg.Port != "443" {
+			redirectURL = fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+		}
+		redirectURL = redirectURL + "/" + cfg.DiscordRedirectURL
+
 		oauthConfig := &oauth2.Config{
 			ClientID:     cfg.DiscordClientID,
 			ClientSecret: cfg.DiscordClientSecret,
-			RedirectURL:  cfg.DiscordRedirectURL,
+			RedirectURL:  redirectURL,
 			Scopes:       []string{"identify", "email"},
 			Endpoint:     discordEndpoint,
 		}

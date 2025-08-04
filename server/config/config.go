@@ -43,29 +43,20 @@ func Load() (*Config, error) {
 		}
 	}
 
-	host := getEnv("HOST", "http://localhost")
-	port := getEnv("PORT", "8080")
-
-	// Construct base API URL
-	baseURL := host
-	if port != "" && port != "80" && port != "443" {
-		baseURL = fmt.Sprintf("%s:%s", host, port)
-	}
-
 	cfg := &Config{
-		Port:        port,
-		Host:        host,
+		Port:        getEnv("PORT", "8080"),
+		Host:        getEnv("HOST", "http://localhost"),
 		Env:         getEnv("ENV", "development"),
 		DatabaseURL: getEnv("DATABASE_URL", ""),
 		JWTSecret:   getEnv("JWT_SECRET", ""),
 
 		GitHubClientID:     getEnv("GITHUB_CLIENT_ID", ""),
 		GitHubClientSecret: getEnv("GITHUB_CLIENT_SECRET", ""),
-		GitHubRedirectURL:  baseURL + "/" + getEnv("GITHUB_REDIRECT_URL", "auth/github/callback"),
+		GitHubRedirectURL:  getEnv("GITHUB_REDIRECT_URL", "auth/github/callback"),
 
 		DiscordClientID:     getEnv("DISCORD_CLIENT_ID", ""),
 		DiscordClientSecret: getEnv("DISCORD_CLIENT_SECRET", ""),
-		DiscordRedirectURL:  baseURL + "/" + getEnv("DISCORD_REDIRECT_URL", "auth/discord/callback"),
+		DiscordRedirectURL:  getEnv("DISCORD_REDIRECT_URL", "auth/discord/callback"),
 
 		DiscordBotToken: getEnv("DISCORD_BOT_TOKEN", ""),
 

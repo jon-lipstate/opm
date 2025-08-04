@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"opm/config"
@@ -16,10 +17,17 @@ import (
 // GitHubLogin initiates the GitHub OAuth flow
 func GitHubLogin(cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Construct full redirect URL
+		redirectURL := cfg.Host
+		if cfg.Port != "" && cfg.Port != "80" && cfg.Port != "443" {
+			redirectURL = fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+		}
+		redirectURL = redirectURL + "/" + cfg.GitHubRedirectURL
+
 		oauthConfig := &oauth2.Config{
 			ClientID:     cfg.GitHubClientID,
 			ClientSecret: cfg.GitHubClientSecret,
-			RedirectURL:  cfg.GitHubRedirectURL,
+			RedirectURL:  redirectURL,
 			Scopes:       []string{"user:email", "read:user"},
 			Endpoint:     github.Endpoint,
 		}
@@ -48,10 +56,17 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 			return
 		}
 
+		// Construct full redirect URL
+		redirectURL := cfg.Host
+		if cfg.Port != "" && cfg.Port != "80" && cfg.Port != "443" {
+			redirectURL = fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+		}
+		redirectURL = redirectURL + "/" + cfg.GitHubRedirectURL
+
 		oauthConfig := &oauth2.Config{
 			ClientID:     cfg.GitHubClientID,
 			ClientSecret: cfg.GitHubClientSecret,
-			RedirectURL:  cfg.GitHubRedirectURL,
+			RedirectURL:  redirectURL,
 			Scopes:       []string{"user:email", "read:user"},
 			Endpoint:     github.Endpoint,
 		}
@@ -89,7 +104,7 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 		if displayName == "" {
 			displayName = githubUser.Login
 		}
-		
+
 		user, err := helpers.FindOrCreateUser(
 			r.Context(),
 			"github",
@@ -112,21 +127,37 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 			return
 		}
 
+		var domain string
+		var secure bool
+		switch os.Getenv("ENV") {
+		case "development":
+			domain = "localhost"
+			secure = false
+		case "production":
+			domain = "api.pkg-odin.org"
+			secure = true
+		default:
+			fmt.Println("INVALID ENVIRONMENT")
+			domain = "localhost"
+			secure = false
+		}
+
 		// Set cookie
 		http.SetCookie(w, &http.Cookie{
 			Name:     "token",
 			Value:    tokenString,
 			Path:     "/",
-			Domain:   "", // Let browser handle domain
+			Domain:   domain,
 			HttpOnly: true,
-			Secure:   false, // Set to false for localhost
+			Secure:   secure,
 			SameSite: http.SameSiteLaxMode,
 			MaxAge:   7 * 24 * 60 * 60, // 7 days
 			Expires:  time.Now().Add(7 * 24 * time.Hour),
 		})
 
 		// Redirect to frontend
-		redirectURL := fmt.Sprintf("%s?auth=success", cfg.FrontendURL)
+		redirectURL = fmt.Sprintf("%s?auth=success", cfg.FrontendURL)
+		fmt.Println("REDIRECT:", redirectURL)
 		http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 	}
 }

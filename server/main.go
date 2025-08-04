@@ -105,10 +105,10 @@ func main() {
 
 	// CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:9000", "https://pkg-odin.org/"},
+		AllowedOrigins:   []string{"http://localhost:9000", "https://pkg-odin.org/", "https://api.pkg-odin.org"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization", "Cookie"},
-		ExposedHeaders:   []string{"Set-Cookie"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "Cookie", "Content-Disposition"},
+		ExposedHeaders:   []string{"Set-Cookie", "Content-Disposition"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	})

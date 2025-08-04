@@ -38,7 +38,7 @@ func main() {
 	r := mux.NewRouter()
 
 	// API routes
-	api := r.PathPrefix("/api").Subrouter()
+	api := r
 
 	// Apply global middleware
 	api.Use(middleware.Logger)

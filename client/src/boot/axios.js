@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useUserStore } from 'stores/user-store'
 
 // Set base URL based on environment
-const baseURL = process.env.NODE_ENV === 'development' ? 'http://localhost:8080/api' : '/api' // In production, use relative URL
+const baseURL = process.env.NODE_ENV === 'development' ? 'http://localhost:8080/' : '' // In production, use relative URL
 
 const api = axios.create({
 	baseURL,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"opm/db"
+	"opm/logger"
 	"opm/middleware"
 	"opm/models"
 	"regexp"
@@ -13,16 +14,16 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-var aliasRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9-_]*[a-z0-9]$`)
+var slugRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9-_]*[a-z0-9]$`)
 
-// isValidAlias checks if an alias is URL-safe and follows our rules
-func isValidAlias(alias string) bool {
+// isValidSlug checks if a slug is URL-safe and follows our rules
+func isValidSlug(slug string) bool {
 	// Must be lowercase
-	if alias != strings.ToLower(alias) {
+	if slug != strings.ToLower(slug) {
 		return false
 	}
 	// Must match pattern: start/end with alphanumeric, can contain hyphens/underscores
-	return aliasRegex.MatchString(alias)
+	return slugRegex.MatchString(slug)
 }
 
 // UpdateProfile updates the authenticated user's profile
@@ -45,38 +46,38 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	args := []interface{}{}
 	argIndex := 1
 
-	// Validate and update alias
-	if input.Alias != nil {
-		// Validate alias format
-		alias := strings.TrimSpace(*input.Alias)
-		if alias == "" {
-			http.Error(w, "Alias cannot be empty", http.StatusBadRequest)
+	// Validate and update slug
+	if input.Slug != nil {
+		// Validate slug format
+		slug := strings.TrimSpace(*input.Slug)
+		if slug == "" {
+			http.Error(w, "Slug cannot be empty", http.StatusBadRequest)
 			return
 		}
-		if len(alias) < 3 || len(alias) > 50 {
-			http.Error(w, "Alias must be between 3 and 50 characters", http.StatusBadRequest)
+		if len(slug) < 3 || len(slug) > 50 {
+			http.Error(w, "Slug must be between 3 and 50 characters", http.StatusBadRequest)
 			return
 		}
-		// Check if alias matches required pattern (lowercase letters, numbers, hyphens, underscores)
+		// Check if slug matches required pattern (lowercase letters, numbers, hyphens, underscores)
 		// Must be URL-safe without encoding
-		if !isValidAlias(alias) {
-			http.Error(w, "Alias must contain only lowercase letters, numbers, hyphens, and underscores", http.StatusBadRequest)
+		if !isValidSlug(slug) {
+			http.Error(w, "Slug must contain only lowercase letters, numbers, hyphens, and underscores", http.StatusBadRequest)
 			return
 		}
 
-		// Check if alias is already taken by another user
+		// Check if slug is already taken by another user
 		var existingUserID int
 		err := db.Conn.QueryRow(ctx,
-			"SELECT id FROM users WHERE alias = $1 AND id != $2",
-			alias, authUser.UserID,
+			"SELECT id FROM users WHERE slug = $1 AND id != $2",
+			slug, authUser.UserID,
 		).Scan(&existingUserID)
 		if err != pgx.ErrNoRows {
-			http.Error(w, "Alias is already taken", http.StatusConflict)
+			http.Error(w, "Slug is already taken", http.StatusConflict)
 			return
 		}
 
-		updateFields = append(updateFields, fmt.Sprintf("alias = $%d", argIndex))
-		args = append(args, alias)
+		updateFields = append(updateFields, fmt.Sprintf("slug = $%d", argIndex))
+		args = append(args, slug)
 		argIndex++
 	}
 
@@ -120,7 +121,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	_, err := db.Conn.Exec(ctx, query, args...)
 	if err != nil {
-		fmt.Printf("Update profile error: %v\n", err)
+		logger.MainLogger.Printf("Failed to update profile for user %d: %v", authUser.UserID, err)
 		http.Error(w, "Failed to update profile", http.StatusInternalServerError)
 		return
 	}
@@ -133,18 +134,18 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// CheckAliasAvailability checks if an alias is available
-func CheckAliasAvailability(w http.ResponseWriter, r *http.Request) {
+// CheckSlugAvailability checks if an slug is available
+func CheckSlugAvailability(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	alias := r.URL.Query().Get("alias")
+	slug := r.URL.Query().Get("slug")
 
-	if alias == "" {
-		http.Error(w, "Alias parameter is required", http.StatusBadRequest)
+	if slug == "" {
+		http.Error(w, "Slug parameter is required", http.StatusBadRequest)
 		return
 	}
 
-	// Validate alias format
-	if !isValidAlias(alias) {
+	// Validate slug format
+	if !isValidSlug(slug) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"available": false,
@@ -153,12 +154,12 @@ func CheckAliasAvailability(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if alias is too short or too long
-	if len(alias) < 3 || len(alias) > 50 {
+	// Check if slug is too short or too long
+	if len(slug) < 3 || len(slug) > 50 {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"available": false,
-			"reason":    "Alias must be between 3 and 50 characters",
+			"reason":    "Slug must be between 3 and 50 characters",
 		})
 		return
 	}
@@ -169,23 +170,23 @@ func CheckAliasAvailability(w http.ResponseWriter, r *http.Request) {
 		currentUserID = authUser.UserID
 	}
 
-	// Check if alias exists (excluding current user)
+	// Check if slug exists (excluding current user)
 	var existingID int
 	var query string
 	var args []interface{}
 	
 	if currentUserID > 0 {
-		query = "SELECT id FROM users WHERE alias = $1 AND id != $2"
-		args = []interface{}{alias, currentUserID}
+		query = "SELECT id FROM users WHERE slug = $1 AND id != $2"
+		args = []interface{}{slug, currentUserID}
 	} else {
-		query = "SELECT id FROM users WHERE alias = $1"
-		args = []interface{}{alias}
+		query = "SELECT id FROM users WHERE slug = $1"
+		args = []interface{}{slug}
 	}
 	
 	err := db.Conn.QueryRow(ctx, query, args...).Scan(&existingID)
 	
 	if err == pgx.ErrNoRows {
-		// Alias is available
+		// Slug is available
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"available": true,
@@ -193,10 +194,10 @@ func CheckAliasAvailability(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Alias is taken
+	// Slug is taken
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"available": false,
-		"reason":    "This alias is already taken",
+		"reason":    "This slug is already taken",
 	})
 }

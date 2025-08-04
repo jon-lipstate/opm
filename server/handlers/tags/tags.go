@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"opm/db"
+	"opm/logger"
 	"opm/models"
 	"strconv"
 )
@@ -43,6 +44,7 @@ func List(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.Conn.Query(ctx, query, args...)
 	if err != nil {
+		logger.MainLogger.Printf("Failed to fetch tags - Query: %s, Args: %v, Error: %v", query, args, err)
 		http.Error(w, "Failed to fetch tags", http.StatusInternalServerError)
 		return
 	}
@@ -53,6 +55,7 @@ func List(w http.ResponseWriter, r *http.Request) {
 		var t models.Tag
 		err := rows.Scan(&t.ID, &t.Name, &t.UsageCount, &t.CreatedAt)
 		if err != nil {
+			logger.MainLogger.Printf("Failed to scan tag: %v", err)
 			continue
 		}
 		tags = append(tags, t)

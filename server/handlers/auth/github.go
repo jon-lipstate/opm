@@ -9,6 +9,7 @@ import (
 
 	"opm/config"
 	"opm/helpers"
+	"opm/logger"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
@@ -44,15 +45,18 @@ func GitHubLogin(cfg *config.Config) http.HandlerFunc {
 // GitHubCallback handles the GitHub OAuth callback
 func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		mainLogger := logger.MainLogger
 		// Verify state parameter
 		state := r.URL.Query().Get("state")
 		if !helpers.ValidateState(state, cfg.JWTSecret) {
+			mainLogger.Println("Github Callback Invalid State")
 			http.Error(w, "Invalid state parameter", http.StatusBadRequest)
 			return
 		}
 
 		code := r.URL.Query().Get("code")
 		if code == "" {
+			mainLogger.Println("Github Callback Missing Code")
 			http.Error(w, "Missing code parameter", http.StatusBadRequest)
 			return
 		}
@@ -76,6 +80,7 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 		// Exchange code for token
 		token, err := oauthConfig.Exchange(r.Context(), code)
 		if err != nil {
+			mainLogger.Println("Failed to exchange token")
 			http.Error(w, "Failed to exchange token", http.StatusInternalServerError)
 			return
 		}
@@ -84,6 +89,7 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 		client := oauthConfig.Client(r.Context(), token)
 		resp, err := client.Get("https://api.github.com/user")
 		if err != nil {
+			mainLogger.Println("Failed to get user info")
 			http.Error(w, "Failed to get user info", http.StatusInternalServerError)
 			return
 		}
@@ -97,6 +103,7 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 		}
 
 		if err := json.NewDecoder(resp.Body).Decode(&githubUser); err != nil {
+			mainLogger.Println("Failed to decode user info")
 			http.Error(w, "Failed to decode user info", http.StatusInternalServerError)
 			return
 		}
@@ -117,7 +124,7 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 		)
 		if err != nil {
 			// Log the actual error for debugging
-			fmt.Printf("Failed to create/update user: %v\n", err)
+			mainLogger.Printf("Failed to create/update user: %v\n", err)
 			http.Error(w, "Failed to create/update user", http.StatusInternalServerError)
 			return
 		}
@@ -125,6 +132,7 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 		// Generate JWT token
 		tokenString, err := helpers.GenerateJWT(user.ID, cfg.JWTSecret)
 		if err != nil {
+			mainLogger.Println("Failed to generate token")
 			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 			return
 		}
@@ -136,7 +144,7 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 			domain = "localhost"
 			secure = false
 		case "production":
-			domain = ".pkg-odin.org"  // Allow cookie across subdomains
+			domain = ".pkg-odin.org" // Allow cookie across subdomains
 			secure = true
 		default:
 			fmt.Println("INVALID ENVIRONMENT")
@@ -159,7 +167,6 @@ func GitHubCallback(cfg *config.Config) http.HandlerFunc {
 
 		// Redirect to frontend
 		redirectURL = fmt.Sprintf("%s?auth=success", cfg.FrontendURL)
-		fmt.Println("REDIRECT:", redirectURL)
 		http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 	}
 }

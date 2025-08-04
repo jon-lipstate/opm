@@ -10,6 +10,7 @@ require (
 	github.com/rs/cors v1.10.1
 	golang.org/x/crypto v0.18.0
 	golang.org/x/oauth2 v0.16.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (

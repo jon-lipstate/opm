@@ -2,12 +2,12 @@ package packages
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"opm/db"
+	"opm/helpers"
+	"opm/logger"
 	"opm/middleware"
 	"opm/models"
-	"strconv"
 )
 
 // Search performs full-text search on packages
@@ -15,27 +15,21 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Get search query
-	searchQuery := r.URL.Query().Get("q")
-	if searchQuery == "" {
-		http.Error(w, "Search query required", http.StatusBadRequest)
+	searchQuery, ok := helpers.RequiredParamString(r, w, "q")
+	if !ok {
 		return
 	}
 
 	// Pagination
 	limit := 20
 	offset := 0
+	if l, hasLimit := helpers.OptionalParamInt(r, "limit"); hasLimit {
+		limit = *l
+	}
 
-	if l := r.URL.Query().Get("limit"); l != "" {
-		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 100 {
-			limit = parsed
-		}
+	if o, hasOffset := helpers.OptionalParamInt(r, "offset"); hasOffset {
+		offset = *o
 	}
-	if o := r.URL.Query().Get("offset"); o != "" {
-		if parsed, err := strconv.Atoi(o); err == nil && parsed >= 0 {
-			offset = parsed
-		}
-	}
-	fmt.Println(searchQuery, limit, offset)
 
 	// Build search query
 	query := `
@@ -43,7 +37,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		       p.repository_url, p.author_id, p.created_at, p.updated_at,
 		       (SELECT COUNT(*) FROM package_views WHERE package_id = p.id) as view_count,
 		       (SELECT COUNT(*) FROM bookmarks WHERE package_id = p.id) as bookmark_count,
-		       u.username, u.alias, u.display_name, u.avatar_url,
+		       u.username, u.slug, u.display_name, u.avatar_url,
 		       (SELECT COUNT(*) FROM flags WHERE package_id = p.id AND status = 'pending') as active_reports_count,
 		       ts_rank(p.search_vector, plainto_tsquery('english', $1)) as rank
 		FROM packages p
@@ -54,8 +48,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.Conn.Query(ctx, query, searchQuery, limit, offset)
 	if err != nil {
-		fmt.Printf("Search query error: %v\n", err)
-		fmt.Printf("Search term: %s\n", searchQuery)
+		logger.MainLogger.Printf("Search query error - Query: %s, Error: %v", searchQuery, err)
 		http.Error(w, "Search failed", http.StatusInternalServerError)
 		return
 	}
@@ -72,13 +65,13 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			&p.ID, &p.Slug, &p.DisplayName, &p.Description, &p.Type, &p.Status,
 			&p.RepositoryURL, &p.AuthorID, &p.CreatedAt, &p.UpdatedAt,
 			&p.ViewCount, &p.BookmarkCount,
-			&author.Username, &author.Alias, &author.DisplayName, &author.AvatarURL,
+			&author.Username, &author.Slug, &author.DisplayName, &author.AvatarURL,
 			&activeReportsCount,
 			&rank,
 		)
 		p.ActiveReportsCount = activeReportsCount
 		if err != nil {
-			fmt.Printf("Search scan error: %v\n", err)
+			logger.MainLogger.Printf("Failed to scan search result: %v", err)
 			continue
 		}
 		p.Author = &author
@@ -91,7 +84,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			packages[i].Tags = tags
 		} else {
-			fmt.Println("TAG ERR", err)
+			logger.MainLogger.Printf("Failed to get tags for package %d: %v", packages[i].ID, err)
 		}
 	}
 

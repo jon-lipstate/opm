@@ -2,9 +2,9 @@ package users
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"opm/db"
+	"opm/logger"
 	"opm/middleware"
 	"opm/models"
 )
@@ -14,7 +14,6 @@ func ListUserPackages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	authUser, ok := middleware.GetAuthUser(ctx)
 	if !ok {
-		fmt.Println("Not Auth")
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -23,7 +22,7 @@ func ListUserPackages(w http.ResponseWriter, r *http.Request) {
 		SELECT p.id, p.slug, p.display_name, p.description, p.type, p.status,
 		       p.repository_url, p.license, p.author_id, p.created_at, p.updated_at,
 		       p.view_count, p.bookmark_count,
-		       u.username, u.alias, u.avatar_url
+		       u.username, u.slug, u.avatar_url
 		FROM packages p
 		JOIN users u ON p.author_id = u.id
 		WHERE p.author_id = $1
@@ -31,7 +30,7 @@ func ListUserPackages(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.Conn.Query(ctx, query, authUser.UserID)
 	if err != nil {
-		fmt.Println("Search packages Err", err)
+		logger.MainLogger.Printf("Failed to fetch user packages for user %d: %v", authUser.UserID, err)
 		http.Error(w, "Failed to fetch packages", http.StatusInternalServerError)
 		return
 	}
@@ -46,10 +45,10 @@ func ListUserPackages(w http.ResponseWriter, r *http.Request) {
 			&p.ID, &p.Slug, &p.DisplayName, &p.Description, &p.Type, &p.Status,
 			&p.RepositoryURL, &p.License, &p.AuthorID, &p.CreatedAt, &p.UpdatedAt,
 			&p.ViewCount, &p.BookmarkCount,
-			&author.Username, &author.Alias, &author.AvatarURL,
+			&author.Username, &author.Slug, &author.AvatarURL,
 		)
 		if err != nil {
-			fmt.Println("Iter row err", err)
+			logger.MainLogger.Printf("Failed to scan user package: %v", err)
 			continue
 		}
 		p.Author = &author

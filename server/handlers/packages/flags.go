@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"opm/db"
+	"opm/helpers"
+	"opm/logger"
 	"opm/middleware"
 	"opm/models"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -17,7 +20,6 @@ func FlagPackage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	authUser, ok := middleware.GetAuthUser(ctx)
 	if !ok {
-		fmt.Println("Not Auth")
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -28,14 +30,12 @@ func FlagPackage(w http.ResponseWriter, r *http.Request) {
 		Details   *string `json:"details,omitempty"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		fmt.Println("Invalid JSON")
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	// Validate input
 	if input.PackageID == 0 {
-		fmt.Println("Invalid Package ID")
 		http.Error(w, "Package ID is required", http.StatusBadRequest)
 		return
 	}
@@ -50,7 +50,6 @@ func FlagPackage(w http.ResponseWriter, r *http.Request) {
 		"Other":                 true,
 	}
 	if !validReasons[input.Reason] {
-		fmt.Println("Invalid Reason Code")
 		http.Error(w, "Invalid flag reason", http.StatusBadRequest)
 		return
 	}
@@ -61,8 +60,12 @@ func FlagPackage(w http.ResponseWriter, r *http.Request) {
 		"SELECT EXISTS(SELECT 1 FROM packages WHERE id = $1)",
 		input.PackageID,
 	).Scan(&packageExists)
-	if err != nil || !packageExists {
-		fmt.Println("Package Search Error", err)
+	if err != nil {
+		logger.MainLogger.Printf("Failed to check package existence for package %d: %v", input.PackageID, err)
+		http.Error(w, "Failed to check package existence", http.StatusInternalServerError)
+		return
+	}
+	if !packageExists {
 		http.Error(w, "Package not found", http.StatusNotFound)
 		return
 	}
@@ -73,8 +76,12 @@ func FlagPackage(w http.ResponseWriter, r *http.Request) {
 		"SELECT EXISTS(SELECT 1 FROM flags WHERE package_id = $1 AND user_id = $2 AND status = 'pending')",
 		input.PackageID, authUser.UserID,
 	).Scan(&existingFlag)
-	if err == nil && existingFlag {
-		fmt.Println("Package Flags Error", err)
+	if err != nil {
+		logger.MainLogger.Printf("Failed to check existing flag for package %d, user %d: %v", input.PackageID, authUser.UserID, err)
+		http.Error(w, "Failed to check existing flag", http.StatusInternalServerError)
+		return
+	}
+	if existingFlag {
 		http.Error(w, "You have already flagged this package", http.StatusConflict)
 		return
 	}
@@ -88,7 +95,7 @@ func FlagPackage(w http.ResponseWriter, r *http.Request) {
 		input.PackageID, authUser.UserID, input.Reason, input.Details,
 	).Scan(&flagID)
 	if err != nil {
-		fmt.Println("Insert Flags Error", err)
+		logger.MainLogger.Printf("Failed to create flag for package %d, user %d: %v", input.PackageID, authUser.UserID, err)
 		http.Error(w, "Failed to create flag", http.StatusInternalServerError)
 		return
 	}
@@ -105,16 +112,8 @@ func FlagPackage(w http.ResponseWriter, r *http.Request) {
 func GetPackageFlags(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Get package ID from query parameter
-	packageIDStr := r.URL.Query().Get("package_id")
-	if packageIDStr == "" {
-		http.Error(w, "Missing package_id parameter", http.StatusBadRequest)
-		return
-	}
-
-	var packageID int
-	if _, err := fmt.Sscanf(packageIDStr, "%d", &packageID); err != nil {
-		http.Error(w, "Invalid package_id", http.StatusBadRequest)
+	packageID, ok := helpers.RequiredParamInt(r, w, "package_id")
+	if !ok {
 		return
 	}
 
@@ -124,7 +123,12 @@ func GetPackageFlags(w http.ResponseWriter, r *http.Request) {
 		"SELECT EXISTS(SELECT 1 FROM packages WHERE id = $1)",
 		packageID,
 	).Scan(&exists)
-	if err != nil || !exists {
+	if err != nil {
+		logger.MainLogger.Printf("Failed to check package existence for package %d: %v", packageID, err)
+		http.Error(w, "Failed to check package existence", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
 		http.Error(w, "Package not found", http.StatusNotFound)
 		return
 	}
@@ -137,24 +141,23 @@ func GetPackageFlags(w http.ResponseWriter, r *http.Request) {
 			WHERE package_id = $1 AND status = 'pending'
 			ORDER BY created_at DESC`
 
-	fmt.Printf("Fetching flags for package %d\n", packageID)
 	rows, err := db.Conn.Query(ctx, query, packageID)
 	if err != nil {
-		fmt.Printf("Error fetching flags: %v\n", err)
+		logger.MainLogger.Printf("Failed to fetch flags for package %d: %v", packageID, err)
 		http.Error(w, "Failed to fetch flags", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
 	flags := []models.Flag{}
-	_, ok := middleware.GetAuthUser(ctx)
+	_, ok = middleware.GetAuthUser(ctx)
 
 	for rows.Next() {
 		var f models.Flag
-		err := rows.Scan(&f.ID, &f.PackageID, &f.UserID, &f.Reason, &f.Details, &f.Status, 
+		err := rows.Scan(&f.ID, &f.PackageID, &f.UserID, &f.Reason, &f.Details, &f.Status,
 			&f.ResolvedBy, &f.ResolvedAt, &f.CreatedAt, &f.UpdatedAt)
 		if err != nil {
-			fmt.Printf("Error scanning flag: %v\n", err)
+			logger.MainLogger.Printf("Failed to scan flag: %v", err)
 			continue
 		}
 
@@ -165,8 +168,6 @@ func GetPackageFlags(w http.ResponseWriter, r *http.Request) {
 
 		flags = append(flags, f)
 	}
-
-	fmt.Printf("Found %d flags for package %d\n", len(flags), packageID)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(flags)
@@ -187,7 +188,12 @@ func GetAllFlags(w http.ResponseWriter, r *http.Request) {
 		"SELECT is_moderator FROM users WHERE id = $1",
 		authUser.UserID,
 	).Scan(&isModerator)
-	if err != nil || !isModerator {
+	if err != nil {
+		logger.MainLogger.Printf("Failed to check moderator status for user %d: %v", authUser.UserID, err)
+		http.Error(w, "Failed to check permissions", http.StatusInternalServerError)
+		return
+	}
+	if !isModerator {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -224,6 +230,7 @@ func GetAllFlags(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.Conn.Query(ctx, query, args...)
 	if err != nil {
+		logger.MainLogger.Printf("Failed to fetch all flags: %v", err)
 		http.Error(w, "Failed to fetch flags", http.StatusInternalServerError)
 		return
 	}
@@ -247,6 +254,7 @@ func GetAllFlags(w http.ResponseWriter, r *http.Request) {
 			&f.ReporterUsername, &f.ResolverUsername,
 		)
 		if err != nil {
+			logger.MainLogger.Printf("Failed to scan flag with context: %v", err)
 			continue
 		}
 		flags = append(flags, f)
@@ -271,7 +279,12 @@ func ResolveFlag(w http.ResponseWriter, r *http.Request) {
 		"SELECT is_moderator FROM users WHERE id = $1",
 		authUser.UserID,
 	).Scan(&isModerator)
-	if err != nil || !isModerator {
+	if err != nil {
+		logger.MainLogger.Printf("Failed to check moderator status for user %d: %v", authUser.UserID, err)
+		http.Error(w, "Failed to check permissions", http.StatusInternalServerError)
+		return
+	}
+	if !isModerator {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -306,6 +319,7 @@ func ResolveFlag(w http.ResponseWriter, r *http.Request) {
 		input.Status, authUser.UserID, flagID,
 	)
 	if err != nil {
+		logger.MainLogger.Printf("Failed to update flag %s: %v", flagID, err)
 		http.Error(w, "Failed to update flag", http.StatusInternalServerError)
 		return
 	}
@@ -328,7 +342,7 @@ func GetUserFlags(w http.ResponseWriter, r *http.Request) {
 	query := `
 		SELECT f.id, f.package_id, f.reason, f.details, f.status, 
 		       f.resolved_at, f.created_at,
-		       p.slug, p.display_name, u.alias as author_alias
+		       p.slug, p.display_name, u.slug as author_slug
 		FROM flags f
 		JOIN packages p ON f.package_id = p.id
 		JOIN users u ON p.author_id = u.id
@@ -352,7 +366,7 @@ func GetUserFlags(w http.ResponseWriter, r *http.Request) {
 		CreatedAt          time.Time  `json:"created_at"`
 		PackageSlug        string     `json:"package_slug"`
 		PackageDisplayName string     `json:"package_display_name"`
-		AuthorAlias        string     `json:"author_alias"`
+		AuthorSlug         string     `json:"author_slug"`
 	}
 
 	flags := []UserFlag{}
@@ -361,9 +375,10 @@ func GetUserFlags(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(
 			&f.ID, &f.PackageID, &f.Reason, &f.Details, &f.Status,
 			&f.ResolvedAt, &f.CreatedAt,
-			&f.PackageSlug, &f.PackageDisplayName, &f.AuthorAlias,
+			&f.PackageSlug, &f.PackageDisplayName, &f.AuthorSlug,
 		)
 		if err != nil {
+			logger.MainLogger.Printf("Failed to scan user flag: %v", err)
 			continue
 		}
 		flags = append(flags, f)
@@ -377,16 +392,8 @@ func GetUserFlags(w http.ResponseWriter, r *http.Request) {
 func GetFlagStats(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Get package ID from query parameter
-	packageIDStr := r.URL.Query().Get("package_id")
-	if packageIDStr == "" {
-		http.Error(w, "Missing package_id parameter", http.StatusBadRequest)
-		return
-	}
-
-	var packageID int
-	if _, err := fmt.Sscanf(packageIDStr, "%d", &packageID); err != nil {
-		http.Error(w, "Invalid package_id", http.StatusBadRequest)
+	packageID, ok := helpers.RequiredParamInt(r, w, "package_id")
+	if !ok {
 		return
 	}
 
@@ -423,6 +430,7 @@ func GetFlagStats(w http.ResponseWriter, r *http.Request) {
 		&stats.LastFlagDate,
 	)
 	if err != nil {
+		logger.MainLogger.Printf("Failed to fetch flag statistics for package %d: %v", packageID, err)
 		http.Error(w, "Failed to fetch flag statistics", http.StatusInternalServerError)
 		return
 	}
@@ -449,7 +457,9 @@ func GetFlagStats(w http.ResponseWriter, r *http.Request) {
 				Reason string `json:"reason"`
 				Count  int    `json:"count"`
 			}
-			if err := rows.Scan(&r.Reason, &r.Count); err == nil {
+			if err := rows.Scan(&r.Reason, &r.Count); err != nil {
+				logger.MainLogger.Printf("Failed to scan flag reason: %v", err)
+			} else {
 				reasons = append(reasons, r)
 			}
 		}
@@ -465,4 +475,47 @@ func GetFlagStats(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(stats)
+}
+
+func DeleteFlag(w http.ResponseWriter, r *http.Request) {
+	mainLogger := logger.MainLogger
+	ctx := r.Context()
+	authUser, ok := middleware.GetAuthUser(ctx)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Get flag ID from URL
+	vars := mux.Vars(r)
+	flagID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "Invalid flag ID", http.StatusBadRequest)
+		return
+	}
+
+	// Verify the flag belongs to the user
+	var userID int
+	query := `SELECT user_id FROM flags WHERE id = $1`
+	err = db.QueryRow(ctx, query, flagID).Scan(&userID)
+	if err != nil {
+		http.Error(w, "Flag not found", http.StatusNotFound)
+		return
+	}
+
+	if userID != authUser.UserID {
+		http.Error(w, "Forbidden - you can only delete your own flags", http.StatusForbidden)
+		return
+	}
+
+	// Delete the flag
+	deleteQuery := `DELETE FROM flags WHERE id = $1`
+	_, err = db.Exec(ctx, deleteQuery, flagID)
+	if err != nil {
+		mainLogger.Println("delete flag err", err)
+		http.Error(w, "Failed to delete flag", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

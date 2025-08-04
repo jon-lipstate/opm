@@ -3,9 +3,9 @@ package packages
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"opm/db"
+	"opm/logger"
 	"opm/middleware"
 )
 
@@ -29,7 +29,6 @@ func AddTag(w http.ResponseWriter, r *http.Request) {
 
 	// Validate input
 	if input.PackageID == 0 || input.TagName == "" {
-		fmt.Println("Bad Input", input)
 		http.Error(w, "Package ID and tag name are required", http.StatusBadRequest)
 		return
 	}
@@ -40,8 +39,12 @@ func AddTag(w http.ResponseWriter, r *http.Request) {
 		"SELECT EXISTS(SELECT 1 FROM packages WHERE id = $1)",
 		input.PackageID,
 	).Scan(&packageExists)
-	if err != nil || !packageExists {
-		fmt.Println("Package not found")
+	if err != nil {
+		logger.MainLogger.Printf("Failed to check package existence for package %d: %v", input.PackageID, err)
+		http.Error(w, "Failed to check package existence", http.StatusInternalServerError)
+		return
+	}
+	if !packageExists {
 		http.Error(w, "Package not found", http.StatusNotFound)
 		return
 	}
@@ -53,7 +56,7 @@ func AddTag(w http.ResponseWriter, r *http.Request) {
 		input.TagName, authUser.UserID,
 	).Scan(&tagID)
 	if err != nil {
-		fmt.Println("Insert tags Error", err)
+		logger.MainLogger.Printf("Failed to create tag '%s': %v", input.TagName, err)
 		http.Error(w, "Failed to create tag", http.StatusInternalServerError)
 		return
 	}
@@ -64,7 +67,7 @@ func AddTag(w http.ResponseWriter, r *http.Request) {
 		input.PackageID, tagID,
 	)
 	if err != nil {
-		fmt.Println("Insert package_tags Error", err)
+		logger.MainLogger.Printf("Failed to add tag %d to package %d: %v", tagID, input.PackageID, err)
 		http.Error(w, "Failed to add tag to package", http.StatusInternalServerError)
 		return
 	}
@@ -81,7 +84,7 @@ func AddTag(w http.ResponseWriter, r *http.Request) {
 		input.PackageID, tagID, authUser.UserID, voteValue,
 	)
 	if err != nil {
-		fmt.Println("Insert tag_votes Error", err)
+		logger.MainLogger.Printf("Failed to add tag vote for package %d, tag %d, user %d: %v", input.PackageID, tagID, authUser.UserID, err)
 		http.Error(w, "Failed to add vote", http.StatusInternalServerError)
 		return
 	}
@@ -102,7 +105,6 @@ func VoteTag(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	authUser, ok := middleware.GetAuthUser(ctx)
 	if !ok {
-		fmt.Println("Not Auth")
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -113,21 +115,18 @@ func VoteTag(w http.ResponseWriter, r *http.Request) {
 		Vote      int `json:"vote"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		fmt.Println("Invalid JSON")
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	// Validate input
 	if input.PackageID == 0 || input.TagID == 0 {
-		fmt.Println("Invalid JSON")
 		http.Error(w, "Package ID and tag ID are required", http.StatusBadRequest)
 		return
 	}
 
 	// Validate vote value
 	if input.Vote < -1 || input.Vote > 1 {
-		fmt.Println("Invalid Payload")
 		http.Error(w, "Vote must be -1, 0, or 1", http.StatusBadRequest)
 		return
 	}
@@ -138,8 +137,12 @@ func VoteTag(w http.ResponseWriter, r *http.Request) {
 		"SELECT EXISTS(SELECT 1 FROM packages WHERE id = $1)",
 		input.PackageID,
 	).Scan(&packageExists)
-	if err != nil || !packageExists {
-		fmt.Println("Missing Package")
+	if err != nil {
+		logger.MainLogger.Printf("Failed to check package existence for package %d: %v", input.PackageID, err)
+		http.Error(w, "Failed to check package existence", http.StatusInternalServerError)
+		return
+	}
+	if !packageExists {
 		http.Error(w, "Package not found", http.StatusNotFound)
 		return
 	}
@@ -150,8 +153,12 @@ func VoteTag(w http.ResponseWriter, r *http.Request) {
 		"SELECT EXISTS(SELECT 1 FROM package_tags WHERE package_id = $1 AND tag_id = $2)",
 		input.PackageID, input.TagID,
 	).Scan(&exists)
-	if err != nil || !exists {
-		fmt.Println("Missing Tag for Package")
+	if err != nil {
+		logger.MainLogger.Printf("Failed to check tag existence for package %d, tag %d: %v", input.PackageID, input.TagID, err)
+		http.Error(w, "Failed to check tag existence", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
 		http.Error(w, "Tag not found on package", http.StatusNotFound)
 		return
 	}
@@ -177,7 +184,7 @@ func VoteTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		fmt.Println("Update tag_votes error", err)
+		logger.MainLogger.Printf("Failed to update vote for package %d, tag %d, user %d: %v", input.PackageID, input.TagID, authUser.UserID, err)
 		http.Error(w, "Failed to update vote", http.StatusInternalServerError)
 		return
 	}
@@ -216,7 +223,7 @@ func updateTagScore(ctx context.Context, packageID, tagID int) int {
 	).Scan(&score)
 
 	if err != nil {
-		fmt.Println("Update Package_Tags score error")
+		logger.MainLogger.Printf("Failed to update score for package %d, tag %d: %v", packageID, tagID, err)
 		return 0
 	}
 	return score
@@ -227,7 +234,7 @@ func removeTagFromPackage(ctx context.Context, packageID, tagID int) {
 	// Start a transaction
 	tx, err := db.Conn.Begin(ctx)
 	if err != nil {
-		fmt.Printf("Failed to start transaction for tag removal: %v\n", err)
+		logger.MainLogger.Printf("Failed to start transaction for tag removal: %v", err)
 		return
 	}
 	defer tx.Rollback(ctx)
@@ -238,7 +245,7 @@ func removeTagFromPackage(ctx context.Context, packageID, tagID int) {
 		packageID, tagID,
 	)
 	if err != nil {
-		fmt.Printf("Failed to remove tag votes: %v\n", err)
+		logger.MainLogger.Printf("Failed to remove tag votes for package %d, tag %d: %v", packageID, tagID, err)
 		return
 	}
 
@@ -248,7 +255,7 @@ func removeTagFromPackage(ctx context.Context, packageID, tagID int) {
 		packageID, tagID,
 	)
 	if err != nil {
-		fmt.Printf("Failed to remove tag from package: %v\n", err)
+		logger.MainLogger.Printf("Failed to remove tag %d from package %d: %v", tagID, packageID, err)
 		return
 	}
 
@@ -259,7 +266,7 @@ func removeTagFromPackage(ctx context.Context, packageID, tagID int) {
 		tagID,
 	).Scan(&isUsed)
 	if err != nil {
-		fmt.Printf("Failed to check tag usage: %v\n", err)
+		logger.MainLogger.Printf("Failed to check tag %d usage: %v", tagID, err)
 		return
 	}
 
@@ -267,13 +274,13 @@ func removeTagFromPackage(ctx context.Context, packageID, tagID int) {
 	if !isUsed {
 		_, err = tx.Exec(ctx, "DELETE FROM tags WHERE id = $1", tagID)
 		if err != nil {
-			fmt.Printf("Failed to delete orphaned tag: %v\n", err)
+			logger.MainLogger.Printf("Failed to delete orphaned tag %d: %v", tagID, err)
 			return
 		}
 	}
 
 	// Commit the transaction
 	if err = tx.Commit(ctx); err != nil {
-		fmt.Printf("Failed to commit tag removal transaction: %v\n", err)
+		logger.MainLogger.Printf("Failed to commit tag removal transaction: %v", err)
 	}
 }

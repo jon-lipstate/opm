@@ -8,6 +8,7 @@ import (
 	"golang.org/x/oauth2"
 	"opm/config"
 	"opm/helpers"
+	"opm/logger"
 )
 
 var discordEndpoint = oauth2.Endpoint{
@@ -48,6 +49,7 @@ func DiscordCallback(cfg *config.Config) http.HandlerFunc {
 		// Verify state parameter
 		state := r.URL.Query().Get("state")
 		if !helpers.ValidateState(state, cfg.JWTSecret) {
+			logger.SecurityLogger.Printf("Discord OAuth: Invalid state parameter received")
 			http.Error(w, "Invalid state parameter", http.StatusBadRequest)
 			return
 		}
@@ -77,6 +79,7 @@ func DiscordCallback(cfg *config.Config) http.HandlerFunc {
 		// Exchange code for token
 		token, err := oauthConfig.Exchange(r.Context(), code)
 		if err != nil {
+			logger.MainLogger.Printf("Discord OAuth: Failed to exchange token: %v", err)
 			http.Error(w, "Failed to exchange token", http.StatusInternalServerError)
 			return
 		}
@@ -85,6 +88,7 @@ func DiscordCallback(cfg *config.Config) http.HandlerFunc {
 		client := oauthConfig.Client(r.Context(), token)
 		resp, err := client.Get("https://discord.com/api/users/@me")
 		if err != nil {
+			logger.MainLogger.Printf("Discord OAuth: Failed to get user info: %v", err)
 			http.Error(w, "Failed to get user info", http.StatusInternalServerError)
 			return
 		}
@@ -98,6 +102,7 @@ func DiscordCallback(cfg *config.Config) http.HandlerFunc {
 		}
 
 		if err := json.NewDecoder(resp.Body).Decode(&discordUser); err != nil {
+			logger.MainLogger.Printf("Discord OAuth: Failed to decode user info: %v", err)
 			http.Error(w, "Failed to decode user info", http.StatusInternalServerError)
 			return
 		}
